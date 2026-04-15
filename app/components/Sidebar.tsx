@@ -18,7 +18,6 @@ import {
 const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard, section: 'principale' },
   { label: 'Clienti', href: '/clients', icon: Building2, section: 'principale' },
-  { label: 'Pipeline', href: '/pipeline', icon: Kanban, section: 'operativo' },
   { label: 'Candidati', href: '/candidates', icon: Users, section: 'operativo' },
   { label: 'Template Messaggi', href: '/templates', icon: FileText, section: 'strumenti' },
   { label: 'Impostazioni', href: '/settings', icon: Settings, section: 'strumenti' },
