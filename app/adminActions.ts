@@ -149,6 +149,13 @@ export async function updateJobPipelineStages(jobId: string, stages: any[]) {
   return { success: true };
 }
 
+export async function updateJobFormSchema(jobId: string, formSchema: any[]) {
+  const { error } = await supabase.from('job_positions').update({ form_schema: formSchema }).eq('id', jobId);
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}
+
 import { sendEmail } from '@/lib/email';
 
 export async function moveCandidatePipeline(
