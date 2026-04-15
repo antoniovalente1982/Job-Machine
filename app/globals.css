@@ -94,3 +94,13 @@ a {
   background: var(--accent-light);
   color: var(--accent-text);
 }
+
+/* Skeleton loading animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

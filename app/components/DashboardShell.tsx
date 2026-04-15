@@ -16,32 +16,25 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     }
   }, [loading, user, router]);
 
-  if (loading) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        color: 'var(--text-muted)'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚙️</div>
-          <p>Caricamento Job Machine...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null; // Will redirect
-  }
-
+  // Mostra il layout con sidebar SUBITO, anche durante il caricamento auth
+  // Questo elimina il "flash bianco" di loading
   return (
     <div className={styles.dashboardLayout}>
       <Sidebar />
       <main className={styles.content}>
-        {children}
+        {loading ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+            <div style={{ 
+              width: 32, height: 32, 
+              border: '3px solid var(--border-primary)', 
+              borderTopColor: 'var(--accent-primary)', 
+              borderRadius: '50%', 
+              animation: 'spin 0.6s linear infinite' 
+            }} />
+          </div>
+        ) : user ? (
+          children
+        ) : null}
       </main>
     </div>
   );
