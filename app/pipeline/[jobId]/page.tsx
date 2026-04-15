@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardShell from '../../../components/DashboardShell';
+import DashboardShell from '../../components/DashboardShell';
 import { createSupabaseClient } from '@/lib/supabase';
 import { ArrowLeft, User, GripVertical, FileText, Star } from 'lucide-react';
 
