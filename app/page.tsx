@@ -1,4 +1,5 @@
 import pageStyles from './page.module.css';
+import { supabase } from '../lib/supabase';
 import { 
   ChefHat, 
   Utensils, 
@@ -10,100 +11,37 @@ import {
   ConciergeBell
 } from 'lucide-react';
 
-const structuresData = [
-  {
-    id: "ristorante",
-    name: "Ristorante Pasta e Vino / Ristorante FRESCO",
-    location: "Palau (SS)",
-    description: "Servizi alla carta pranzo e cena, 120 coperti, da inizio maggio a fine ottobre. Cucina mediterranea con influenze sarde. Un giorno di riposo a settimana, vitto e alloggio forniti da noi in prossimità dei ristoranti.",
-    image: "/restaurant.png",
-    roles: [
-      {
-        title: "Capopartita primi/secondi",
-        salary: "2000€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de17743d25d60a06a13a50/ATTI4d41fc73a754e2049eedda7a2eadf",
-        icon: <ChefHat size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Aiuto Cuoco",
-        salary: "1500€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de1ef3e420cf43c790f601/ATTI25dbc03b04b00cc19ea1ccff99052",
-        icon: <Utensils size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Chef de Rang",
-        salary: "1800€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de1f18a7f074715b3cd177/ATTIf77586cfab8df181e936acd1d8724",
-        icon: <UtensilsCrossed size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Cameriere di Sala",
-        salary: "1400€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de1f2def13230c7ddbcb4d/ATTI3ec68513367bd498bdcadc75",
-        icon: <Wine size={22} className={pageStyles.roleIcon} />
-      }
-    ]
-  },
-  {
-    id: "hotel",
-    name: "Hotel Palau 4 stelle S",
-    location: "Palau (SS)",
-    description: "Servizio colazione e cena (con bistrot pranzo a turnazione). Colazione al buffet + caffetteria express. Cena servizio impiattato con scelta la sera precedente (max 200 pax), in alta stagione anche ristorante alla carta 20/40 pax con servizi alla francese. Un giorno di riposo a settimana, vitto e alloggio forniti da noi adiacenti o in prossimità della struttura. Da subito fino al 31 ottobre.",
-    image: "/hotel.png",
-    roles: [
-      {
-        title: "Capopartita",
-        salary: "1800€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de17743d25d60a06a13a50/ATTI4d41fc73a754e2049eedda7a2eadf",
-        icon: <ChefHat size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Aiuto cuoco",
-        salary: "1400€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de1ef3e420cf43c790f601/ATTI25dbc03b04b00cc19ea1ccff99052",
-        icon: <Utensils size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Chef de Rang",
-        salary: "1800€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de1f18a7f074715b3cd177/ATTIf77586cfab8df181e936acd1d8724",
-        icon: <UtensilsCrossed size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Cameriere di Sala",
-        salary: "1400€ mese + TFR",
-        trelloLink: "https://trello.com/invite/b/69de1f2def13230c7ddbcb4d/ATTI3ec68513367bd498bdcadc75",
-        icon: <Wine size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Barista",
-        salary: "1400€ mese + TFR",
-        trelloLink: "#",
-        icon: <Coffee size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Manutentore hotel",
-        salary: "1700€ mese + TFR",
-        trelloLink: "#",
-        icon: <Wrench size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Addetta lavanderia",
-        salary: "1400€ mese + TFR",
-        trelloLink: "#",
-        icon: <Shirt size={22} className={pageStyles.roleIcon} />
-      },
-      {
-        title: "Ricevimento front office",
-        salary: "1500€ mese + TFR",
-        trelloLink: "#",
-        icon: <ConciergeBell size={22} className={pageStyles.roleIcon} />
-      }
-    ]
-  }
-];
+const iconMap: Record<string, any> = {
+  ChefHat,
+  Utensils,
+  UtensilsCrossed,
+  Wine,
+  Coffee,
+  Wrench,
+  Shirt,
+  ConciergeBell
+};
 
-export default function Home() {
+export const revalidate = 0; // Ensure data is strictly realtime bypassing Next cache
+
+export default async function Home() {
+  // Dati estratti da Supabase in tempo reale
+  const { data: clientData, error: clientErr } = await supabase
+    .from('clients')
+    .select('name, logo_url, structures(*, job_positions(*))')
+    .eq('slug', 'consulting-manager-group')
+    .single();
+
+  if (clientErr || !clientData) {
+    return (
+      <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>
+        <h2>Errore di caricamento dati 🔴</h2>
+        <p>Assicurati di aver configurato .env.local e creato le tabelle.</p>
+        <pre>{clientErr?.message}</pre>
+      </div>
+    );
+  }
+
   return (
     <main className={pageStyles.main}>
       <header className={pageStyles.header}>
@@ -116,7 +54,7 @@ export default function Home() {
       </header>
 
       <section className={pageStyles.hero}>
-        <div className={pageStyles.superTitle}>Consulting Manager Group (HR MACHINE)</div>
+        <div className={pageStyles.superTitle}>{clientData.name} (HR MACHINE)</div>
         <h1 className={pageStyles.title}>Portale Smistamento Candidati</h1>
         <p className={pageStyles.subtitle}>
           Seleziona la struttura e apri la bacheca Trello corrispondente per gestire i candidati.
@@ -124,39 +62,57 @@ export default function Home() {
       </section>
 
       <div className={pageStyles.structuresContainer}>
-        {structuresData.map((structure) => (
+        {clientData.structures?.map((structure: any) => (
           <div key={structure.id} className={pageStyles.structureSection}>
             <div className={pageStyles.structureHeader}>
-              <img src={structure.image} alt={structure.name} className={pageStyles.structureImage} />
+              {structure.image_url && (
+                <img src={structure.image_url} alt={structure.name} className={pageStyles.structureImage} />
+              )}
               <div className={pageStyles.structureTitleContainer}>
                 <h2 className={pageStyles.structureTitle}>{structure.name}</h2>
                 <span className={pageStyles.structureLocation}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                  {structure.location}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  {structure.location || 'Sede Principale'}
                 </span>
               </div>
             </div>
-            <p className={pageStyles.structureDesc}>{structure.description}</p>
+            
+            {structure.description && (
+              <p className={pageStyles.structureDesc}>{structure.description}</p>
+            )}
             
             <div className={pageStyles.rolesGrid}>
-              {structure.roles.map((role, idx) => (
-                <div key={idx} className={`glass-panel ${pageStyles.roleCard}`}>
-                  <div className={pageStyles.roleInfo}>
-                    <h3 className={pageStyles.roleTitle}>
-                      {role.icon}
-                      <span>{role.title}</span>
-                    </h3>
-                    <div className={pageStyles.roleSalary}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                      {role.salary}
+              {structure.job_positions?.map((role: any) => {
+                const IconComponent = iconMap[role.icon_name] || ChefHat;
+                return (
+                  <div key={role.id} className={`glass-panel ${pageStyles.roleCard}`}>
+                    <div className={pageStyles.roleInfo}>
+                      <h3 className={pageStyles.roleTitle}>
+                        <IconComponent size={22} className={pageStyles.roleIcon} />
+                        <span>{role.title}</span>
+                      </h3>
+                      <div className={pageStyles.roleSalary}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="1" x2="12" y2="23"></line>
+                          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        {role.salary || 'Da confermare'}
+                      </div>
                     </div>
+                    <a href={role.trello_board_link || '#'} target="_blank" rel="noopener noreferrer" className={pageStyles.trelloButton}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <rect x="7" y="7" width="3" height="9"></rect>
+                        <rect x="14" y="7" width="3" height="5"></rect>
+                      </svg>
+                      <span>Apri Bacheca</span>
+                    </a>
                   </div>
-                  <a href={role.trelloLink} target="_blank" rel="noopener noreferrer" className={pageStyles.trelloButton}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect></svg>
-                    <span>Apri Bacheca</span>
-                  </a>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
