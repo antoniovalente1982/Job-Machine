@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardShell from '../../components/DashboardShell';
 import { createSupabaseClient } from '@/lib/supabase';
 import { ArrowLeft, User, GripVertical, FileText, Star, X, CheckSquare, Mail, MessageSquare } from 'lucide-react';
-import { updateCandidateChecklist, updateCandidateNotes, updateJobPipelineStages } from '../../adminActions';
+import { updateCandidateChecklist, updateCandidateNotes, updateJobPipelineStages, moveCandidatePipeline } from '../../adminActions';
 
 const DEFAULT_STAGES = [
   { id: 'received', name: 'Candidature Ricevute', color: '#6366f1', definition: 'Ricezione e primissimo contatto.' },
@@ -52,9 +52,14 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
   }
 
   async function moveCandidate(candidateId: string, newStage: string) {
-    const sb = createSupabaseClient();
-    await sb.from('candidates').update({ pipeline_stage: newStage }).eq('id', candidateId);
+    // Aggiornamento ottimistico UI
     setCandidates(prev => prev.map(c => c.id === candidateId ? { ...c, pipeline_stage: newStage } : c));
+    
+    const stageConfig = currentStages.find((s:any) => s.id === newStage);
+    const emailConfig = stageConfig ? { autoEmail: stageConfig.autoEmail, emailSubject: stageConfig.emailSubject, emailBody: stageConfig.emailBody } : undefined;
+    
+    // Server action con email integrata
+    await moveCandidatePipeline(candidateId, newStage, emailConfig);
   }
 
   async function handleChecklistToggle(field: string, value: boolean) {
@@ -119,7 +124,7 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
     setEditingStages([...editingStages, { id: 'stage_' + Date.now(), name: 'Nuovo Step', color: '#94a3b8', definition: '' }]);
   }
 
-  function handleUpdateStage(index: number, field: string, value: string) {
+  function handleUpdateStage(index: number, field: string, value: any) {
     const newStages = [...editingStages];
     newStages[index][field] = value;
     setEditingStages(newStages);
@@ -387,6 +392,36 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                       placeholder="Spiegazione chiara delle azioni da compiere in questo step (es. Inviare email con questionario tecnico e attendere risposta in 48h)..."
                       style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 8, border: '1px solid var(--border-primary)', background: 'var(--bg-primary)', resize: 'vertical', minHeight: 60, fontSize: '0.85rem' }}
                     />
+                    
+                    <div style={{ marginTop: '0.2rem', background: stage.autoEmail ? 'var(--bg-primary)' : 'transparent', border: stage.autoEmail ? '1px solid var(--accent-primary)' : '1px dashed var(--border-primary)', padding: '0.75rem', borderRadius: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', color: stage.autoEmail ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={!!stage.autoEmail} 
+                          onChange={(e) => handleUpdateStage(index, 'autoEmail', e.target.checked)}
+                          style={{ width: 16, height: 16 }}
+                        />
+                        ✉️ Invia Email Automatica all'ingresso
+                      </label>
+                      
+                      {stage.autoEmail && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+                          <input 
+                            type="text" 
+                            value={stage.emailSubject || ''} 
+                            onChange={(e) => handleUpdateStage(index, 'emailSubject', e.target.value)}
+                            placeholder="Oggetto dell'email (es. Prossimo Step nella Selezione)"
+                            style={{ padding: '0.5rem', borderRadius: 6, border: '1px solid var(--border-primary)', background: 'var(--bg-secondary)', fontSize: '0.85rem' }}
+                          />
+                          <textarea 
+                            value={stage.emailBody || ''} 
+                            onChange={(e) => handleUpdateStage(index, 'emailBody', e.target.value)}
+                            placeholder="Testo dell'email. Usa {Nome} per salutare automaticamente il candidato..."
+                            style={{ padding: '0.5rem', borderRadius: 6, border: '1px solid var(--border-primary)', background: 'var(--bg-secondary)', minHeight: 80, resize: 'vertical', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <button onClick={() => handleRemoveStage(index)} style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: 8, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>

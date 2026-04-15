@@ -148,3 +148,39 @@ export async function updateJobPipelineStages(jobId: string, stages: any[]) {
   revalidatePath('/');
   return { success: true };
 }
+
+import { sendEmail } from '@/lib/email';
+
+export async function moveCandidatePipeline(
+  candidateId: string, 
+  newStage: string, 
+  emailConfig?: { autoEmail: boolean; emailSubject?: string; emailBody?: string }
+) {
+  // First, get the candidate info so we have their email and name
+  const { data: candidate, error: fetchErr } = await supabase
+    .from('candidates')
+    .select('email, first_name')
+    .eq('id', candidateId)
+    .single();
+
+  const { error } = await supabase
+    .from('candidates')
+    .update({ pipeline_stage: newStage })
+    .eq('id', candidateId);
+    
+  if (error) return { error: error.message };
+  
+  // If stage has autoEmail configured, trigger the email
+  if (candidate && emailConfig?.autoEmail && emailConfig.emailSubject && emailConfig.emailBody) {
+     const personalizedBody = emailConfig.emailBody.replace(/{Nome}/g, candidate.first_name);
+     await sendEmail({
+       to: candidate.email,
+       subject: emailConfig.emailSubject,
+       text: personalizedBody
+     });
+  }
+
+  revalidatePath('/');
+  return { success: true };
+}
+
