@@ -10,25 +10,23 @@ export default function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [signupDone, setSignupDone] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError('');
+
+    const email = formData.get('email') as string;
 
     if (isSignup) {
       const result = await signupAction(formData);
       if (result.error) {
         setError(result.error);
       } else {
-        setError('');
-        // Dopo signup, logghiamoci automaticamente
-        const loginResult = await loginAction(formData);
-        if (loginResult.success && loginResult.session) {
-          // Salviamo la sessione nel localStorage per il client
-          localStorage.setItem('sb-session', JSON.stringify(loginResult.session));
-          router.push('/');
-          router.refresh();
-        }
+        // Mostra schermata di conferma email
+        setSignupEmail(email);
+        setSignupDone(true);
       }
     } else {
       const result = await loginAction(formData);
@@ -42,6 +40,42 @@ export default function LoginPage() {
     }
 
     setLoading(false);
+  }
+
+  // Schermata di ringraziamento post-registrazione
+  if (signupDone) {
+    return (
+      <main className={styles.main}>
+        <div className={`glass-panel ${styles.container}`}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✉️</div>
+            <h1 className={styles.logo} style={{ fontSize: '1.5rem' }}>Registrazione Completata!</h1>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, margin: '1rem 0 1.5rem' }}>
+              Grazie per esserti registrato su <strong>Job Machine</strong>.<br />
+              Ti abbiamo inviato un'email di verifica a:<br />
+              <strong style={{ color: 'var(--accent-primary)' }}>{signupEmail}</strong>
+            </p>
+            <div style={{ 
+              background: 'var(--accent-light)', 
+              border: '1px solid var(--border-accent)', 
+              borderRadius: 10, 
+              padding: '1rem', 
+              fontSize: '0.9rem',
+              color: 'var(--text-secondary)',
+              marginBottom: '1.5rem'
+            }}>
+              📬 Controlla la tua casella di posta (anche lo spam!) e clicca sul link di conferma per attivare il tuo account.
+            </div>
+            <button 
+              onClick={() => { setSignupDone(false); setIsSignup(false); }}
+              className={styles.submitBtn}
+            >
+              Ho confermato, portami al Login
+            </button>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
