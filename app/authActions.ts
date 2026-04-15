@@ -54,3 +54,17 @@ export async function logoutAction() {
   await supabase.auth.signOut();
   return { success: true };
 }
+
+export async function updatePasswordAction(formData: FormData) {
+  const password = formData.get('password') as string;
+  
+  const { error } = await supabase.auth.updateUser({
+    password: password
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}

@@ -19,10 +19,18 @@ export default function LoginPage() {
     setError('');
     const email = formData.get('email') as string;
 
+    const translateError = (msg: string) => {
+      if (msg.includes('Invalid login credentials')) return 'Email o password errati.';
+      if (msg.includes('Email not confirmed')) return 'Devi confermare la tua email prima di poter accedere. Controlla la posta.';
+      if (msg.includes('User already registered')) return 'Esiste già un account con questa email.';
+      if (msg.includes('Password should be at least')) return 'La password deve contenere almeno 6 caratteri.';
+      return msg;
+    };
+
     if (mode === 'reset') {
       const result = await resetPasswordAction(formData);
       if (result.error) {
-        setError(result.error);
+        setError(translateError(result.error));
       } else {
         setSignupEmail(email);
         setResetDone(true);
@@ -34,7 +42,7 @@ export default function LoginPage() {
     if (mode === 'signup') {
       const result = await signupAction(formData);
       if (result.error) {
-        setError(result.error);
+        setError(translateError(result.error));
       } else {
         setSignupEmail(email);
         setSignupDone(true);
@@ -42,7 +50,7 @@ export default function LoginPage() {
     } else {
       const result = await loginAction(formData);
       if (result.error) {
-        setError(result.error);
+        setError(translateError(result.error));
       } else if (result.success && result.session) {
         localStorage.setItem('sb-session', JSON.stringify(result.session));
         router.push('/');
