@@ -232,79 +232,101 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stageRawId)}
                 style={{ 
-                  minWidth: 260, 
-                  maxWidth: 280,
-                  flex: '0 0 260px',
-                  background: stage.color || '#1e293b', 
+                  minWidth: 272, 
+                  maxWidth: 272,
+                  flex: '0 0 272px',
+                  background: '#101204', 
                   borderRadius: 12, 
-                  padding: '1rem',
+                  padding: '0.75rem 0.5rem',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.75rem',
+                  gap: '0.5rem',
                   border: 'none',
-                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)'
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
+                {/* Tint Layer */}
+                <div style={{ position: 'absolute', inset: 0, backgroundColor: stage.color || '#1e293b', opacity: 0.15, pointerEvents: 'none' }} />
+
                 {/* Column Header */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, flex: 1, color: '#ffffff', textShadow: '0px 1px 2px rgba(0,0,0,0.4)' }}>{stage.name || stage.label}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#ffffff', background: 'rgba(0,0,0,0.3)', padding: '0.15rem 0.5rem', borderRadius: 99 }}>{stageCards.length}</span>
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem 0.5rem 0.5rem', zIndex: 1, position: 'relative' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, flex: 1, color: '#b6c2cf' }}>{stage.name || stage.label}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#b6c2cf', fontWeight: 600 }}>...</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0 0.25rem', overflowY: 'auto', zIndex: 1, position: 'relative' }}>
+                  
+                  {/* Definition Box (Like Trello top card) */}
                   {stage.definition && (
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.2, marginTop: '0.2rem' }}>
-                      ℹ️ {stage.definition}
+                    <div style={{ 
+                      background: 'rgba(255,255,255,0.06)', 
+                      borderRadius: 8, 
+                      padding: '0.7rem',
+                      color: '#b6c2cf',
+                      fontSize: '0.75rem',
+                      lineHeight: 1.4
+                    }}>
+                      💬 {stage.definition}
+                    </div>
+                  )}
+
+                  {/* Cards */}
+                  {stageCards.map(candidate => {
+                    const checklistCount = [
+                      candidate.checklist_msg1_sent, 
+                      candidate.checklist_msg2_sent, 
+                      candidate.checklist_quest_done, 
+                      candidate.checklist_remind_cv, 
+                      candidate.checklist_cv_done
+                    ].filter(Boolean).length;
+
+                    return (
+                      <div 
+                        key={candidate.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, candidate.id)}
+                        onClick={() => { setSelectedCandidate(candidate); setNotesTemp(candidate.internal_notes || ''); }}
+                        style={{ 
+                          background: '#22272b', 
+                          border: 'none', 
+                          borderRadius: 8, 
+                          padding: '0.75rem',
+                          cursor: 'grab',
+                          boxShadow: '0 1px 1px #091e4240',
+                          color: '#b6c2cf',
+                          position: 'relative',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.5rem'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.outline = '2px solid #579dff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.outline = 'none'; }}
+                      >
+                        <div style={{ fontWeight: 500, fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.3 }}>
+                          {candidate.first_name} {candidate.last_name}
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', color: checklistCount === 5 ? '#22c55e' : '#b6c2cf' }}>
+                            <CheckSquare size={14} /> {checklistCount}/5
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {stageCards.length === 0 && (
+                    <div style={{ padding: '0.5rem', color: 'transparent', height: 2 }}>
+                      .
                     </div>
                   )}
                 </div>
-
-              {/* Cards */}
-              {stageCards.map(candidate => (
-                <div 
-                  key={candidate.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, candidate.id)}
-                  onClick={() => { setSelectedCandidate(candidate); setNotesTemp(candidate.internal_notes || ''); }}
-                  style={{ 
-                    background: '#22272b', 
-                    border: '1px solid #3b424a', 
-                    borderRadius: 8, 
-                    padding: '0.85rem',
-                    cursor: 'grab',
-                    transition: 'all 0.15s',
-                    boxShadow: '0 1px 1px #091e4240',
-                    color: '#e2e8f0'
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#3b424a'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                    <User size={14} style={{ color: (stage.color && stage.color !== '#1e293b' && stage.color !== '#000000') ? stage.color : '#94a3b8' }} />
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#ffffff' }}>{candidate.first_name} {candidate.last_name}</span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{candidate.email}</div>
-                  {candidate.phone && <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{candidate.phone}</div>}
-                  
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                    {candidate.cv_file_path && (
-                      <span style={{ fontSize: '0.65rem', background: '#1e3a8a', color: '#60a5fa', padding: '0.15rem 0.4rem', borderRadius: 4, display: 'flex', alignItems: 'center' }}>
-                        📎 CV
-                      </span>
-                    )}
-                    {candidate.questionnaire_responses && Object.keys(candidate.questionnaire_responses).length > 0 && (
-                      <span style={{fontSize: '0.65rem', background: '#78350f', color: '#fbbf24', padding: '0.15rem 0.4rem', borderRadius: 4, display: 'flex', alignItems: 'center' }}>
-                        📝 Form
-                      </span>
-                    )}
-                  </div>
+                
+                {/* Trello "Aggiungi" Button */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem 0 0.5rem', zIndex: 1, position: 'relative', color: '#b6c2cf', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', marginTop: 'auto' }}>
+                  + Aggiungi una scheda
                 </div>
-              ))}
-
-              {stageCards.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 8 }}>
-                  Trascina qui i candidati
-                </div>
-              )}
             </div>
           );
         })}
