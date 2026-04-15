@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { submitApplication } from '../../actions';
 import styles from './page.module.css';
+import { createSupabaseClient } from '@/lib/supabase';
 
-export default function ApplicationForm({ params }: { params: { id: string } }) {
+export default function ApplicationForm({ params }: { params: Promise<{ id: string }> }) {
+  const { id: jobId } = use(params);
   const [jobInfo, setJobInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -12,14 +14,32 @@ export default function ApplicationForm({ params }: { params: { id: string } }) 
 
   // Dato che questa è una Client Component, fetcho i dettagli tramite API (se ci fosse un backend locale) 
   // O semplicemente passiamo JobID al server e ci fidiamo
+  const [formSchema, setFormSchema] = useState<any[]>([]);
+
   useEffect(() => {
-    // In un'app vera prenderemmo i dati di Job ID da Supabase, ma in questo step ci fermiamo al form
-    setLoading(false);
-  }, [params.id]);
+    async function fetchJob() {
+      const sb = createSupabaseClient();
+      const { data } = await sb.from('job_positions').select('form_schema').eq('id', jobId).single();
+      
+      let schemaToUse = data?.form_schema;
+      if (!schemaToUse || !Array.isArray(schemaToUse) || schemaToUse.length === 0) {
+        // Fallback schema to not break older setups
+        schemaToUse = [
+          { id: 'motivation', type: 'textarea', label: 'Perché vorresti lavorare con noi in questa struttura, e perché dovremmo sceglierti? (Motivazione)', required: true },
+          { id: 'experience', type: 'textarea', label: 'Descrivi brevemente la tua esperienza più significativa in questo ruolo', required: true },
+          { id: 'residency', type: 'text', label: 'Hai necessità di vitto e alloggio o risiedi in zona?', required: true }
+        ];
+      }
+      
+      setFormSchema(schemaToUse);
+      setLoading(false);
+    }
+    fetchJob();
+  }, [jobId]);
 
   async function clientAction(formData: FormData) {
     setSubmitting(true);
-    const res = await submitApplication(params.id, formData);
+    const res = await submitApplication(jobId, formData);
     if (res.success) {
       setSuccess(true);
     } else {
@@ -71,21 +91,40 @@ export default function ApplicationForm({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          <div className={styles.formSection}>
-            <h3 className={styles.sectionTitle}>2. Questionario Attitudinale</h3>
-            <div className={styles.inputGroup}>
-              <label>Perché vorresti lavorare con noi in questa struttura, e perché dovremmo sceglierti? (Motivazione) *</label>
-              <textarea name="motivation" required className={`${styles.input} ${styles.textarea}`} placeholder="Scrivi una breve motivazione..."></textarea>
+          {formSchema.length > 0 && (
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>2. Modulo Personalizzato</h3>
+              {formSchema.map((field) => (
+                <div key={field.id} className={styles.inputGroup}>
+                  <label>{field.label} {field.required && '*'}</label>
+                  
+                  {field.type === 'text' && (
+                    <input type="text" name={field.id} required={field.required} className={styles.input} />
+                  )}
+                  {field.type === 'textarea' && (
+                    <textarea name={field.id} required={field.required} className={`${styles.input} ${styles.textarea}`}></textarea>
+                  )}
+                  {field.type === 'select' && (
+                    <select name={field.id} required={field.required} className={styles.input} style={{ height: 'auto', padding: '0.75rem', WebkitAppearance: 'none' }}>
+                      <option value="">Seleziona un'opzione...</option>
+                      {(field.options || []).map((opt: string) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  )}
+                  {field.type === 'checkbox' && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'normal', fontSize: '1rem', marginTop: '0.5rem' }}>
+                      <input type="checkbox" name={field.id} value="true" required={field.required} style={{ width: 20, height: 20 }} />
+                      Sì, confermo
+                    </label>
+                  )}
+                  {field.type === 'file' && (
+                    <input type="file" name={field.id} required={field.required} className={styles.fileInput} style={{ marginTop: '0.5rem' }} />
+                  )}
+                </div>
+              ))}
             </div>
-            <div className={styles.inputGroup}>
-              <label>Descrivi brevemente la tua esperienza più significativa in questo ruolo *</label>
-              <textarea name="experience" required className={`${styles.input} ${styles.textarea}`} placeholder="Ho lavorato 3 anni presso..."></textarea>
-            </div>
-            <div className={styles.inputGroup}>
-              <label>Hai necessità di vitto e alloggio o risiedi in zona? *</label>
-              <input type="text" name="residency" required className={styles.input} placeholder="Es: Risiedo in zona / Necessito alloggio" />
-            </div>
-          </div>
+          )}
 
           <div className={styles.formSection}>
             <h3 className={styles.sectionTitle}>3. Curriculum Vitae</h3>

@@ -10,16 +10,26 @@ export async function submitApplication(jobId: string, formData: FormData) {
     const email = formData.get('email') as string;
     const phone = formData.get('phone') as string;
     
-    // Raccogliamo le risposte al questionario fisse testuali
-    const motivation = formData.get('motivation') as string;
-    const experience = formData.get('experience') as string;
-    const residency = formData.get('residency') as string;
+    const standardKeys = ['first_name', 'last_name', 'email', 'phone', 'cv_file'];
+    const questionnaire_responses: Record<string, any> = {};
     
-    const questionnaire_responses = {
-      motivation,
-      experience,
-      residency
-    };
+    // Raccogliamo dinamicamente tutte le risposte al questionario
+    for (const [key, value] of formData.entries()) {
+      if (!standardKeys.includes(key) && !key.startsWith('$ACTION')) {
+        if (value instanceof File) {
+          if (value.size > 0) {
+            const safeName = `${Date.now()}_${value.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+            const filePath = `candidati/${jobId}/extra_${safeName}`;
+            const { data: uploadData } = await supabase.storage.from('resumes').upload(filePath, value);
+            if (uploadData) {
+              questionnaire_responses[key] = uploadData.path;
+            }
+          }
+        } else {
+          questionnaire_responses[key] = value;
+        }
+      }
+    }
 
     // Estraiamo il file Curriculum Vitae
     const cvFile = formData.get('cv_file') as File;
