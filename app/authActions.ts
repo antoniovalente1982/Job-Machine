@@ -36,6 +36,20 @@ export async function signupAction(formData: FormData) {
   return { success: true };
 }
 
+export async function resetPasswordAction(formData: FormData) {
+  const email = formData.get('email') as string;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://jobmachine.biz'}/login`,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
 export async function logoutAction() {
   await supabase.auth.signOut();
   return { success: true };
