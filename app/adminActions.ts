@@ -141,3 +141,10 @@ export async function updateCandidateNotes(candidateId: string, notes: string) {
   revalidatePath('/');
   return { success: true };
 }
+
+export async function updateJobPipelineStages(jobId: string, stages: any[]) {
+  const { error } = await supabase.from('job_positions').update({ pipeline_stages: stages }).eq('id', jobId);
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}

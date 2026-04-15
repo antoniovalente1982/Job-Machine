@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import DashboardShell from '../../components/DashboardShell';
 import { createSupabaseClient } from '@/lib/supabase';
 import { ArrowLeft, User, GripVertical, FileText, Star, X, CheckSquare, Mail, MessageSquare } from 'lucide-react';
-import { updateCandidateChecklist, updateCandidateNotes } from '../../adminActions';
+import { updateCandidateChecklist, updateCandidateNotes, updateJobPipelineStages } from '../../adminActions';
 
-const PIPELINE_STAGES = [
-  { key: 'received', label: 'Candidature Ricevute', color: '#6366f1' },
-  { key: 'first_selection', label: '1° Selezione (Questionario)', color: '#f59e0b' },
-  { key: 'selected', label: 'Selezionati / Da Contattare', color: '#22c55e' },
-  { key: 'rejected', label: 'Scartati (Non in linea)', color: '#ef4444' },
+const DEFAULT_STAGES = [
+  { id: 'received', name: 'Candidature Ricevute', color: '#6366f1', definition: 'Ricezione e primissimo contatto.' },
+  { id: 'first_selection', name: '1° Selezione (Questionario)', color: '#f59e0b', definition: 'Inviata richiesta di questionario e lettera.' },
+  { id: 'selected', name: 'Selezionati DA CONTATTARE', color: '#22c55e', definition: 'Profilo in linea, in attesa di colloquio o contratto.' },
+  { id: 'rejected', name: 'SCARTATI (Non in linea)', color: '#ef4444', definition: 'Profilo non idoneo o incompleto.' },
 ];
 
 export default function PipelinePage({ params }: { params: Promise<{ jobId: string }> }) {
@@ -23,6 +23,13 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [notesTemp, setNotesTemp] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [editingStages, setEditingStages] = useState<any[]>([]);
+  const [savingStages, setSavingStages] = useState(false);
+
+  const currentStages = (job?.pipeline_stages && Array.isArray(job.pipeline_stages) && job.pipeline_stages.length > 0)
+    ? job.pipeline_stages 
+    : DEFAULT_STAGES;
 
   useEffect(() => { loadData(); }, [jobId]);
 
@@ -92,6 +99,54 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
     }
   }
 
+  function handleOpenSettings() {
+    const currentStages = (job?.pipeline_stages && Array.isArray(job.pipeline_stages) && job.pipeline_stages.length > 0)
+      ? JSON.parse(JSON.stringify(job.pipeline_stages))
+      : JSON.parse(JSON.stringify(DEFAULT_STAGES));
+    setEditingStages(currentStages);
+    setIsSettingsOpen(true);
+  }
+
+  async function handleSaveStages() {
+    setSavingStages(true);
+    await updateJobPipelineStages(jobId, editingStages);
+    await loadData();
+    setSavingStages(false);
+    setIsSettingsOpen(false);
+  }
+
+  function handleAddStage() {
+    setEditingStages([...editingStages, { id: 'stage_' + Date.now(), name: 'Nuovo Step', color: '#94a3b8', definition: '' }]);
+  }
+
+  function handleUpdateStage(index: number, field: string, value: string) {
+    const newStages = [...editingStages];
+    newStages[index][field] = value;
+    setEditingStages(newStages);
+  }
+
+  function handleRemoveStage(index: number) {
+    if (confirm("Sei sicuro di eliminare questo step? I candidati al suo interno non saranno più visibili finché non li sposti.")) {
+      const newStages = [...editingStages];
+      newStages.splice(index, 1);
+      setEditingStages(newStages);
+    }
+  }
+
+  function moveStage(index: number, direction: 'up'|'down') {
+    const newStages = [...editingStages];
+    if (direction === 'up' && index > 0) {
+      const temp = newStages[index - 1];
+      newStages[index - 1] = newStages[index];
+      newStages[index] = temp;
+    } else if (direction === 'down' && index < newStages.length - 1) {
+      const temp = newStages[index + 1];
+      newStages[index + 1] = newStages[index];
+      newStages[index] = temp;
+    }
+    setEditingStages(newStages);
+  }
+
   const breadcrumb = job ? `${job.structure?.client?.name} › ${job.structure?.name} › ${job.title}` : '...';
 
   return (
@@ -100,38 +155,53 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
         <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
           <ArrowLeft size={14} /> {breadcrumb}
         </button>
-        <h1 style={{ fontSize: '1.6rem', fontWeight: 700 }}>Pipeline: {job?.title || '...'}</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{candidates.length} candidati totali · Trascina le card per spostare i candidati tra le fasi</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 700 }}>Pipeline: {job?.title || '...'}</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{candidates.length} candidati totali · Trascina le card per spostare i candidati tra le fasi</p>
+          </div>
+          <button onClick={handleOpenSettings} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+            ⚙️ Impostazioni Pipeline
+          </button>
+        </div>
       </div>
 
       {/* Kanban Board */}
       <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '2rem', minHeight: '60vh' }}>
-        {PIPELINE_STAGES.map(stage => {
-          const stageCards = candidates.filter(c => c.pipeline_stage === stage.key);
+        {currentStages.map((stage: any) => {
+          const stageRawId = stage.id || stage.key;
+          const stageCards = candidates.filter(c => c.pipeline_stage === stageRawId || (stageRawId === 'received' && !c.pipeline_stage));
           return (
             <div 
-              key={stage.key}
+              key={stageRawId}
               onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, stage.key)}
-              style={{ 
-                minWidth: 260, 
-                maxWidth: 280,
-                flex: '0 0 260px',
-                background: 'var(--bg-primary)', 
-                borderRadius: 16, 
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                border: '1px solid var(--border-light)'
-              }}
-            >
-              {/* Column Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '0.75rem', borderBottom: `2px solid ${stage.color}` }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: stage.color }}></div>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, flex: 1 }}>{stage.label}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-hover)', padding: '0.15rem 0.5rem', borderRadius: 99 }}>{stageCards.length}</span>
-              </div>
+              onDrop={(e) => handleDrop(e, stageRawId)}
+                style={{ 
+                  minWidth: 260, 
+                  maxWidth: 280,
+                  flex: '0 0 260px',
+                  background: 'var(--bg-primary)', 
+                  borderRadius: 16, 
+                  padding: '1rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                {/* Column Header */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingBottom: '0.75rem', borderBottom: `2px solid ${stage.color}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: stage.color }}></div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, flex: 1 }}>{stage.name || stage.label}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-hover)', padding: '0.15rem 0.5rem', borderRadius: 99 }}>{stageCards.length}</span>
+                  </div>
+                  {stage.definition && (
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.2, marginTop: '0.2rem' }}>
+                      ℹ️ {stage.definition}
+                    </div>
+                  )}
+                </div>
 
               {/* Cards */}
               {stageCards.map(candidate => (
@@ -194,8 +264,8 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
               <div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.25rem' }}>{selectedCandidate.first_name} {selectedCandidate.last_name}</h2>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{selectedCandidate.email} {selectedCandidate.phone && `• ${selectedCandidate.phone}`}</div>
-                <span style={{ display: 'inline-flex', padding: '0.25rem 0.75rem', borderRadius: 99, fontSize: '0.75rem', fontWeight: 600, background: PIPELINE_STAGES.find(s => s.key === selectedCandidate.pipeline_stage)?.color + '20', color: PIPELINE_STAGES.find(s => s.key === selectedCandidate.pipeline_stage)?.color }}>
-                  Fase: {PIPELINE_STAGES.find(s => s.key === selectedCandidate.pipeline_stage)?.label}
+                <span style={{ display: 'inline-flex', padding: '0.25rem 0.75rem', borderRadius: 99, fontSize: '0.75rem', fontWeight: 600, background: currentStages.find((s:any) => (s.id || s.key) === selectedCandidate.pipeline_stage)?.color + '20', color: currentStages.find((s:any) => (s.id || s.key) === selectedCandidate.pipeline_stage)?.color }}>
+                  Fase: {currentStages.find((s:any) => (s.id || s.key) === selectedCandidate.pipeline_stage)?.name || currentStages.find((s:any) => (s.id || s.key) === selectedCandidate.pipeline_stage)?.label || 'Bozza'}
                 </span>
               </div>
               <button onClick={() => setSelectedCandidate(null)} style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}>
@@ -266,6 +336,78 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                 </div>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Impostazioni Pipeline</h2>
+              <button onClick={() => setIsSettingsOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              Definisci i passaggi del processo di selezione per questa specifica mansione. 
+              Puoi aggiungere una <strong>Spiegazione del passaggio</strong> per allineare tutto il team sulle procedure da seguire.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+              {editingStages.map((stage, index) => (
+                <div key={index} style={{ display: 'flex', gap: '1rem', background: 'var(--bg-secondary)', padding: '1rem', borderRadius: 12, border: '1px solid var(--border-light)', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.2rem' }}>
+                    <button onClick={() => moveStage(index, 'up')} disabled={index === 0} style={{ background: 'none', border: 'none', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1 }}>⬆️</button>
+                    <button onClick={() => moveStage(index, 'down')} disabled={index === editingStages.length - 1} style={{ background: 'none', border: 'none', cursor: index === editingStages.length - 1 ? 'not-allowed' : 'pointer', opacity: index === editingStages.length - 1 ? 0.3 : 1 }}>⬇️</button>
+                  </div>
+                  
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="color" 
+                        value={stage.color || '#cccccc'} 
+                        onChange={(e) => handleUpdateStage(index, 'color', e.target.value)}
+                        style={{ width: 40, height: 40, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer' }}
+                      />
+                      <input 
+                        type="text" 
+                        value={stage.name || stage.label || ''} 
+                        onChange={(e) => handleUpdateStage(index, 'name', e.target.value)}
+                        placeholder="Nome del passaggio (es. 1° Colloquio Tecnico)"
+                        style={{ flex: 1, padding: '0.5rem 1rem', borderRadius: 8, border: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }}
+                      />
+                    </div>
+                    <textarea 
+                      value={stage.definition || ''} 
+                      onChange={(e) => handleUpdateStage(index, 'definition', e.target.value)}
+                      placeholder="Spiegazione chiara delle azioni da compiere in questo step (es. Inviare email con questionario tecnico e attendere risposta in 48h)..."
+                      style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 8, border: '1px solid var(--border-primary)', background: 'var(--bg-primary)', resize: 'vertical', minHeight: 60, fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <button onClick={() => handleRemoveStage(index)} style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: 8, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <X size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
+              <button onClick={handleAddStage} style={{ padding: '0.75rem 1.5rem', background: 'transparent', border: '1px dashed var(--border-primary)', color: 'var(--text-primary)', borderRadius: 10, cursor: 'pointer', fontWeight: 600 }}>
+                + Aggiungi Step
+              </button>
+              
+              <button 
+                onClick={handleSaveStages} 
+                disabled={savingStages}
+                style={{ padding: '0.75rem 2rem', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, opacity: savingStages ? 0.7 : 1 }}
+              >
+                {savingStages ? 'Salvataggio...' : 'Salva Modifiche'}
+              </button>
             </div>
           </div>
         </div>
