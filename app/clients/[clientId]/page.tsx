@@ -83,9 +83,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
           {/* Job Positions */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.75rem' }}>
             {structure.job_positions?.map((job: any) => (
-              <div key={job.id} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div key={job.id} style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 10, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{job.title}</div>
-                {job.salary && <div style={{ fontSize: '0.8rem', color: '#4ade80' }}>💰 {job.salary}</div>}
+                {job.salary && <div style={{ fontSize: '0.8rem', color: 'var(--green)' }}>💰 {job.salary}</div>}
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
                   <button onClick={() => router.push(`/pipeline/${job.id}`)} style={{ flex: 1, padding: '0.5rem', background: 'var(--accent-primary)', border: 'none', borderRadius: 6, color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}>
                     Pipeline
@@ -93,7 +93,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                   <CopyLinkButton
                     id={job.id}
                     className=""
-                    style={{ flex: 1, padding: '0.5rem', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'white', cursor: 'pointer', fontSize: '0.8rem' }}
+                    style={{ flex: 1, padding: '0.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 6, color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem' }}
                   />
                 </div>
               </div>
@@ -101,7 +101,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
             
             {/* Add Job Button */}
             <div onClick={() => { setStructureContext(structure.id); setModal('job'); }} 
-              style={{ background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 10, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.9rem', minHeight: 100, transition: 'all 0.2s' }}>
+              style={{ background: 'transparent', border: '1px dashed var(--border-primary)', borderRadius: 10, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.9rem', minHeight: 100, transition: 'all 0.2s' }}>
               <Plus size={18} /> Nuova Posizione
             </div>
           </div>
@@ -109,13 +109,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
       ))}
 
       {/* Add Structure Button */}
-      <button onClick={() => setModal('structure')} style={{ width: '100%', padding: '1rem', background: 'transparent', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 12, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+      <button onClick={() => setModal('structure')} style={{ width: '100%', padding: '1rem', background: 'transparent', border: '1px dashed var(--border-primary)', borderRadius: 12, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
         <Plus size={18} /> Aggiungi Nuova Struttura
       </button>
 
       {/* Modals */}
       {modal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
           <div className="glass-panel" style={{ maxWidth: 440, width: '100%', padding: '2rem' }}>
             <h3 style={{ marginBottom: '1.5rem', fontWeight: 600 }}>
               {modal === 'structure' ? 'Nuova Struttura' : 'Nuova Posizione'}
@@ -124,11 +124,11 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
             {modal === 'structure' && (
               <form action={handleAddStructure} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <input type="text" name="name" required placeholder="Nome struttura" 
-                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.8rem', color: 'white' }} />
+                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <input type="text" name="location" required placeholder="Località (es. Roma)" 
-                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.8rem', color: 'white' }} />
+                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button type="button" onClick={() => setModal(null)} style={{ flex: 1, padding: '0.8rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'white', cursor: 'pointer' }}>Annulla</button>
+                  <button type="button" onClick={() => setModal(null)} style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, color: 'var(--text-primary)', cursor: 'pointer' }}>Annulla</button>
                   <button type="submit" disabled={loading} style={{ flex: 1, padding: '0.8rem', background: 'var(--accent-primary)', border: 'none', borderRadius: 8, color: 'white', fontWeight: 600, cursor: 'pointer' }}>{loading ? '...' : 'Crea'}</button>
                 </div>
               </form>
@@ -137,13 +137,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
             {modal === 'job' && (
               <form action={handleAddJob} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <input type="text" name="title" required placeholder="Titolo ruolo (es. Sommelier)" 
-                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.8rem', color: 'white' }} />
+                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <input type="text" name="salary" required placeholder="Compenso (es. 1500€/mese + TFR)" 
-                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.8rem', color: 'white' }} />
+                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <input type="text" name="trello_board_link" placeholder="Link Trello (opzionale)" 
-                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.8rem', color: 'white' }} />
+                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button type="button" onClick={() => setModal(null)} style={{ flex: 1, padding: '0.8rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'white', cursor: 'pointer' }}>Annulla</button>
+                  <button type="button" onClick={() => setModal(null)} style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, color: 'var(--text-primary)', cursor: 'pointer' }}>Annulla</button>
                   <button type="submit" disabled={loading} style={{ flex: 1, padding: '0.8rem', background: 'var(--accent-primary)', border: 'none', borderRadius: 8, color: 'white', fontWeight: 600, cursor: 'pointer' }}>{loading ? '...' : 'Crea'}</button>
                 </div>
               </form>

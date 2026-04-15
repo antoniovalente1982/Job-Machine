@@ -3,45 +3,46 @@
 }
 
 .title {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
+  color: var(--text-primary);
 }
 
 .subtitle {
   color: var(--text-muted);
-  font-size: 0.95rem;
-  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
 }
 
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
   margin-bottom: 2.5rem;
 }
 
 .kpiCard {
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .kpiIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.kpiIcon.blue { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
-.kpiIcon.green { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-.kpiIcon.amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.kpiIcon.rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
-.kpiIcon.purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.kpiIcon.blue { background: var(--blue-light); color: var(--blue); }
+.kpiIcon.green { background: var(--green-light); color: var(--green); }
+.kpiIcon.amber { background: var(--amber-light); color: var(--amber); }
+.kpiIcon.rose { background: var(--rose-light); color: var(--rose); }
+.kpiIcon.purple { background: var(--purple-light); color: var(--purple); }
 
 .kpiInfo {
   display: flex;
@@ -49,55 +50,59 @@
 }
 
 .kpiValue {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
   line-height: 1;
+  color: var(--text-primary);
 }
 
 .kpiLabel {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
+  font-weight: 500;
 }
 
 .sectionTitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .clientsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .clientCard {
-  padding: 1.25rem;
+  padding: 1.1rem 1.25rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .clientCard:hover {
   border-color: var(--accent-primary);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .clientAvatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2));
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--accent-light);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   flex-shrink: 0;
-  color: #a5b4fc;
+  color: var(--accent-primary);
 }
 
 .clientInfo {
@@ -107,16 +112,17 @@
 
 .clientName {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .clientMeta {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
 }
 
 .clientArrow {
@@ -130,22 +136,22 @@
 }
 
 .addClientBtn {
-  background: transparent;
-  border: 1px dashed rgba(255,255,255,0.2);
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-primary);
   color: var(--text-secondary);
-  padding: 1.25rem;
+  padding: 1.1rem;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .addClientBtn:hover {
   border-color: var(--accent-primary);
-  color: white;
-  background: rgba(99,102,241,0.05);
+  color: var(--accent-primary);
+  background: var(--accent-light);
 }

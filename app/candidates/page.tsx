@@ -56,7 +56,7 @@ export default function CandidatesPage() {
           placeholder="Cerca per nome o email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '0.85rem 0.85rem 0.85rem 2.5rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, color: 'white', fontSize: '0.95rem' }}
+          style={{ width: '100%', padding: '0.85rem 0.85rem 0.85rem 2.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 10, color: 'var(--text-primary)', fontSize: '0.95rem' }}
         />
       </div>
 
@@ -64,7 +64,7 @@ export default function CandidatesPage() {
       <div className="glass-panel" style={{ borderRadius: 16, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
               <th style={{ padding: '1rem 1.25rem', textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Candidato</th>
               <th style={{ padding: '1rem 1.25rem', textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Posizione</th>
               <th style={{ padding: '1rem 1.25rem', textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cliente</th>
@@ -76,8 +76,8 @@ export default function CandidatesPage() {
             {filtered.map(c => {
               const stage = STAGE_LABELS[c.pipeline_stage || c.status] || STAGE_LABELS.candidatura_ricevuta;
               return (
-                <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.1s', cursor: 'pointer' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                <tr key={c.id} style={{ borderBottom: '1px solid var(--border-light)', transition: 'background 0.1s', cursor: 'pointer' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   <td style={{ padding: '0.85rem 1.25rem' }}>

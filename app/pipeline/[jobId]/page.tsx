@@ -94,20 +94,20 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                 minWidth: 260, 
                 maxWidth: 280,
                 flex: '0 0 260px',
-                background: 'rgba(17,24,39,0.6)', 
+                background: 'var(--bg-primary)', 
                 borderRadius: 16, 
                 padding: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.75rem',
-                border: '1px solid rgba(255,255,255,0.04)'
+                border: '1px solid var(--border-light)'
               }}
             >
               {/* Column Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '0.75rem', borderBottom: `2px solid ${stage.color}` }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: stage.color }}></div>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, flex: 1 }}>{stage.label}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '0.15rem 0.5rem', borderRadius: 99 }}>{stageCards.length}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-hover)', padding: '0.15rem 0.5rem', borderRadius: 99 }}>{stageCards.length}</span>
               </div>
 
               {/* Cards */}
@@ -117,12 +117,13 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                   draggable
                   onDragStart={(e) => handleDragStart(e, candidate.id)}
                   style={{ 
-                    background: 'rgba(0,0,0,0.4)', 
-                    border: '1px solid rgba(255,255,255,0.08)', 
+                    background: 'var(--bg-secondary)', 
+                    border: '1px solid var(--border-primary)', 
                     borderRadius: 10, 
                     padding: '0.85rem',
                     cursor: 'grab',
                     transition: 'all 0.15s',
+                    boxShadow: 'var(--shadow-xs)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
@@ -134,12 +135,12 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                   
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                     {candidate.cv_file_path && (
-                      <span style={{ fontSize: '0.65rem', background: 'rgba(99,102,241,0.15)', color: '#818cf8', padding: '0.15rem 0.4rem', borderRadius: 4 }}>
+                      <span style={{ fontSize: '0.65rem', background: 'var(--blue-light)', color: 'var(--blue)', padding: '0.15rem 0.4rem', borderRadius: 4 }}>
                         📎 CV
                       </span>
                     )}
                     {candidate.questionnaire_responses && (
-                      <span style={{fontSize: '0.65rem', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', padding: '0.15rem 0.4rem', borderRadius: 4 }}>
+                      <span style={{fontSize: '0.65rem', background: 'var(--amber-light)', color: 'var(--amber)', padding: '0.15rem 0.4rem', borderRadius: 4 }}>
                         📝 Questionario
                       </span>
                     )}
