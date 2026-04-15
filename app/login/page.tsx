@@ -141,8 +141,13 @@ export default function LoginPage() {
             </div>
           )}
 
-          <button type="submit" disabled={loading} className={styles.submitBtn}>
-            {loading ? 'Caricamento...' : mode === 'login' ? 'Accedi' : mode === 'signup' ? 'Registrati' : 'Invia link di recupero'}
+          <button type="submit" disabled={loading} className={`${styles.submitBtn} ${loading ? styles.submitBtnLoading : ''}`}>
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />
+                Attendere...
+              </span>
+            ) : mode === 'login' ? 'Accedi' : mode === 'signup' ? 'Registrati' : 'Invia link di recupero'}
           </button>
         </form>
 
