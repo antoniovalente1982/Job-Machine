@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { createSupabaseClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -24,14 +24,33 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// Lettura sincrona dal localStorage — ZERO attesa
+function getStoredUser(): User {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('sb-session');
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    if (session?.user) {
+      return {
+        id: session.user.id,
+        email: session.user.email || '',
+        full_name: session.user.user_metadata?.full_name,
+      };
+    }
+  } catch {}
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User>(null);
-  const [loading, setLoading] = useState(true);
+  // Inizializza lo user SINCRONO dal localStorage — niente loading!
+  const [user, setUser] = useState<User>(() => getStoredUser());
+  const [loading, setLoading] = useState(false); // Parte da false!
   const router = useRouter();
-  const supabase = createSupabaseClient();
+  const supabase = useMemo(() => createSupabaseClient(), []);
 
   useEffect(() => {
-    // Proviamo a ripristinare la sessione dal localStorage
+    // Verifica sessione in background (non blocca il render)
     const storedSession = localStorage.getItem('sb-session');
     if (storedSession) {
       try {
@@ -43,15 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               email: data.user.email || '',
               full_name: data.user.user_metadata?.full_name,
             });
+          } else {
+            // Sessione scaduta
+            localStorage.removeItem('sb-session');
+            setUser(null);
+            router.push('/login');
           }
-          setLoading(false);
         });
       } catch {
         localStorage.removeItem('sb-session');
-        setLoading(false);
+        setUser(null);
       }
-    } else {
-      setLoading(false);
     }
 
     // Listener per cambiamenti di auth
@@ -63,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: session.user.user_metadata?.full_name,
         });
         localStorage.setItem('sb-session', JSON.stringify(session));
-      } else {
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
         localStorage.removeItem('sb-session');
       }

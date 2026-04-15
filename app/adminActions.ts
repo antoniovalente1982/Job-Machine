@@ -42,11 +42,86 @@ export async function createJobPosition(structureId: string, formData: FormData)
     title,
     salary,
     trello_board_link,
-    icon_name: 'ConciergeBell' // Default fallback
+    status: 'open',
+    icon_name: 'ConciergeBell'
   });
   
   if (error) return { error: error.message };
 
+  revalidatePath('/');
+  return { success: true };
+}
+
+// === GESTIONE STATO POSIZIONI (come Greenhouse/Lever) ===
+
+export async function updateJobStatus(jobId: string, newStatus: string) {
+  const updateData: any = { status: newStatus };
+  
+  if (newStatus === 'closed') {
+    updateData.closed_at = new Date().toISOString();
+  }
+  if (newStatus === 'open') {
+    updateData.closed_at = null;
+    updateData.is_active = true;
+  }
+  if (newStatus === 'archived') {
+    updateData.is_active = false;
+  }
+
+  const { error } = await supabase.from('job_positions').update(updateData).eq('id', jobId);
+  if (error) return { error: error.message };
+
+  revalidatePath('/');
+  return { success: true };
+}
+
+// === TEAM MANAGEMENT ===
+
+export async function inviteTeamMember(formData: FormData) {
+  const email = formData.get('email') as string;
+  const role = formData.get('role') as string;
+
+  // Crea l'invito nel database
+  const { error: inviteError } = await supabase.from('team_invites').insert({
+    email,
+    role,
+  });
+  if (inviteError) return { error: inviteError.message };
+
+  // Crea l'utente su Supabase Auth con una password temporanea
+  const tempPassword = Math.random().toString(36).slice(-10) + 'A1!';
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true,
+    user_metadata: { full_name: formData.get('full_name') as string || email.split('@')[0] }
+  });
+  
+  // Se l'utente esiste già in auth, aggiorniamo solo il profilo
+  if (authError && !authError.message.includes('already')) {
+    return { error: authError.message };
+  }
+
+  // Aggiorna il ruolo nel profilo se l'utente esiste già
+  if (authData?.user) {
+    await supabase.from('profiles').upsert({
+      id: authData.user.id,
+      email,
+      role,
+      full_name: formData.get('full_name') as string || email.split('@')[0],
+    });
+  }
+
+  // Segna l'invito come accettato
+  await supabase.from('team_invites').update({ accepted: true }).eq('email', email);
+
+  revalidatePath('/');
+  return { success: true, tempPassword };
+}
+
+export async function updateUserRole(userId: string, newRole: string) {
+  const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
+  if (error) return { error: error.message };
   revalidatePath('/');
   return { success: true };
 }

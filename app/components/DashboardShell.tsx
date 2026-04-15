@@ -11,30 +11,23 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const router = useRouter();
 
   useEffect(() => {
+    // Redirect solo se siamo certi che non c'è utente
     if (!loading && !user) {
       router.push('/login');
     }
   }, [loading, user, router]);
 
-  // Mostra il layout con sidebar SUBITO, anche durante il caricamento auth
-  // Questo elimina il "flash bianco" di loading
+  // Non loggato? Redirect — non mostrare nulla
+  if (!user && !loading) {
+    return null;
+  }
+
+  // Mostra TUTTO subito — nessun gatekeeping
   return (
     <div className={styles.dashboardLayout}>
       <Sidebar />
       <main className={styles.content}>
-        {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
-            <div style={{ 
-              width: 32, height: 32, 
-              border: '3px solid var(--border-primary)', 
-              borderTopColor: 'var(--accent-primary)', 
-              borderRadius: '50%', 
-              animation: 'spin 0.6s linear infinite' 
-            }} />
-          </div>
-        ) : user ? (
-          children
-        ) : null}
+        {children}
       </main>
     </div>
   );
