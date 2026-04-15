@@ -51,10 +51,12 @@ export default function LoginPage() {
       const result = await loginAction(formData);
       if (result.error) {
         setError(translateError(result.error));
+        setLoading(false);
       } else if (result.success && result.session) {
         localStorage.setItem('sb-session', JSON.stringify(result.session));
-        router.push('/');
-        router.refresh();
+        // Force full page reload to reset all states and initialize AuthProvider freshly
+        window.location.href = '/';
+        return; // Early return to not unset loading state while redirecting
       }
     }
     setLoading(false);
@@ -123,7 +125,12 @@ export default function LoginPage() {
 
         {error && <div className={styles.error}>{error}</div>}
 
-        <form action={handleSubmit} className={styles.form}>
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          const form = e.currentTarget;
+          const formData = new FormData(form);
+          await handleSubmit(formData);
+        }} className={styles.form}>
           {mode === 'signup' && (
             <div className={styles.inputGroup}>
               <label>Nome Completo</label>
