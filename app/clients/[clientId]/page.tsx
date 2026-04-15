@@ -32,7 +32,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
     const sb = createSupabaseClient();
     const { data } = await sb
       .from('clients')
-      .select('*, structures(*, job_positions(*))')
+      .select('*, structures(*, job_positions(*, candidates(id, pipeline_stage)))')
       .eq('id', clientId)
       .single();
     setClient(data);
@@ -105,6 +105,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
             {jobs.map((job: any) => {
               const st = STATUS_CONFIG[job.status] || STATUS_CONFIG.open;
               const isInactive = job.status === 'closed' || job.status === 'archived';
+              const newCandidatesCount = job.candidates?.filter((c: any) => c.pipeline_stage === 'received').length || 0;
+
               return (
               <div key={job.id} style={{ 
                 background: isInactive ? 'var(--bg-hover)' : 'var(--bg-primary)', 
@@ -118,7 +120,14 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
               }}>
                 {/* Header con stato */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{job.title}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    {job.title}
+                    {newCandidatesCount > 0 && (
+                      <span style={{ background: '#ef4444', color: 'white', fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 99, fontWeight: 700 }} title={`${newCandidatesCount} candidati da valutare`}>
+                        {newCandidatesCount}
+                      </span>
+                    )}
+                  </div>
                   <span style={{ 
                     fontSize: '0.7rem', fontWeight: 600, 
                     background: st.bg, color: st.color,
