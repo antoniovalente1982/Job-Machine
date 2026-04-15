@@ -125,3 +125,19 @@ export async function updateUserRole(userId: string, newRole: string) {
   revalidatePath('/');
   return { success: true };
 }
+
+// === PIPELINE CANDIDATI ===
+
+export async function updateCandidateChecklist(candidateId: string, field: string, value: boolean) {
+  const { error } = await supabase.from('candidates').update({ [field]: value }).eq('id', candidateId);
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}
+
+export async function updateCandidateNotes(candidateId: string, notes: string) {
+  const { error } = await supabase.from('candidates').update({ internal_notes: notes }).eq('id', candidateId);
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}
