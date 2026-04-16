@@ -35,12 +35,14 @@ export async function createStructure(clientId: string, formData: FormData) {
 export async function createJobPosition(structureId: string, formData: FormData) {
   const title = formData.get('title') as string;
   const salary = formData.get('salary') as string;
+  const public_description = formData.get('public_description') as string;
   const trello_board_link = formData.get('trello_board_link') as string;
   
   const { error } = await supabase.from('job_positions').insert({
     structure_id: structureId,
     title,
     salary,
+    public_description,
     trello_board_link,
     status: 'open',
     icon_name: 'ConciergeBell'
@@ -156,6 +158,13 @@ export async function updateJobFormSchema(jobId: string, formSchema: any[]) {
   return { success: true };
 }
 
+export async function updateJobPublicDescription(jobId: string, public_description: string) {
+  const { error } = await supabase.from('job_positions').update({ public_description }).eq('id', jobId);
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}
+
 import { sendEmail } from '@/lib/email';
 
 export async function moveCandidatePipeline(
@@ -233,3 +242,25 @@ export async function updateJobChecklistLabels(jobId: string, labels: string[]) 
   return { success: true };
 }
 
+// === TEMPLATE MESSAGGI ===
+
+export async function createTemplateMessage(title: string, subject: string, body: string) {
+  const { error } = await supabase.from('message_templates').insert({ title, subject, body });
+  if (error) return { error: error.message };
+  revalidatePath('/templates');
+  return { success: true };
+}
+
+export async function updateTemplateMessage(id: string, title: string, subject: string, body: string) {
+  const { error } = await supabase.from('message_templates').update({ title, subject, body }).eq('id', id);
+  if (error) return { error: error.message };
+  revalidatePath('/templates');
+  return { success: true };
+}
+
+export async function deleteTemplateMessage(id: string) {
+  const { error } = await supabase.from('message_templates').delete().eq('id', id);
+  if (error) return { error: error.message };
+  revalidatePath('/templates');
+  return { success: true };
+}

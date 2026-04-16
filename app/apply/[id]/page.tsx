@@ -19,7 +19,9 @@ export default function ApplicationForm({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     async function fetchJob() {
       const sb = createSupabaseClient();
-      const { data } = await sb.from('job_positions').select('form_schema').eq('id', jobId).single();
+      const { data } = await sb.from('job_positions').select('form_schema, title, public_description').eq('id', jobId).single();
+      
+      setJobInfo(data);
       
       let schemaToUse = data?.form_schema;
       if (!schemaToUse || !Array.isArray(schemaToUse) || schemaToUse.length === 0) {
@@ -67,13 +69,22 @@ export default function ApplicationForm({ params }: { params: Promise<{ id: stri
     <main className={styles.main}>
       <div className={`glass-panel ${styles.container}`}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Candidatura Veloce</h1>
-          <p className={styles.subtitle}>Compila il questionario per inviare immediatamente la tua candidatura.</p>
+          <h1 className={styles.title}>{jobInfo?.title || 'Posizione Lavorativa'}</h1>
+          <p className={styles.subtitle}>Compila il form sottostante per inviare la tua candidatura e i tuoi dati alla struttura.</p>
         </div>
+
+        {jobInfo?.public_description && (
+          <div className={styles.formSection} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', marginBottom: '2rem' }}>
+            <h3 className={styles.sectionTitle} style={{ color: 'var(--accent-primary)', marginBottom: '1rem' }}>Siamo alla ricerca di:</h3>
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+              {jobInfo.public_description}
+            </div>
+          </div>
+        )}
 
         <form action={clientAction} className={styles.form}>
           <div className={styles.formSection}>
-            <h3 className={styles.sectionTitle}>1. Anagrafica</h3>
+            <h3 className={styles.sectionTitle}>1. Anagrafica Base</h3>
             <div className={styles.inputGroup}>
               <label>Nome *</label>
               <input type="text" name="first_name" required className={styles.input} placeholder="Mario" />

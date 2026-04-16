@@ -186,6 +186,10 @@ export default function AdminDashboard({ clients }: { clients: any[] }) {
                   <input type="text" name="salary" className={styles.input} required placeholder="Es. 1500€ + Mance" />
                 </div>
                 <div className={styles.inputGroup}>
+                  <label>Testo Completo Annuncio (Opzionale)</label>
+                  <textarea name="public_description" className={styles.input} rows={4} placeholder="Incolla il testo completo dell'offerta di lavoro (verrà mostrato ai candidati nella pagina di apply)..." style={{ resize: 'vertical', minHeight: '100px' }}></textarea>
+                </div>
+                <div className={styles.inputGroup}>
                   <label>Link Bacheca Trello (Opzionale per ora)</label>
                   <input type="text" name="trello_board_link" className={styles.input} placeholder="https://trello.com/..." />
                 </div>

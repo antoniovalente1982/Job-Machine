@@ -62,7 +62,8 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
   const [editingStages,    setEditingStages]    = useState<any[]>([]);
   const [editingFormSchema,setEditingFormSchema]= useState<any[]>([]);
   const [savingStages,     setSavingStages]     = useState(false);
-  const [activeTab,        setActiveTab]        = useState<'pipeline'|'form'|'checklist'>('pipeline');
+  const [activeTab,        setActiveTab]        = useState<'pipeline'|'form'|'checklist'|'description'>('pipeline');
+  const [editingPublicDesc, setEditingPublicDesc] = useState('');
 
   // CV + questionario
   const [cvUrl,            setCvUrl]            = useState<string | null>(null);
@@ -190,7 +191,7 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
   function handleDragEnd() { setDraggedId(null); setDragOverStage(null); }
 
   // Settings
-  function handleOpenSettings(tab: 'pipeline'|'form'|'checklist' = 'pipeline') {
+  function handleOpenSettings(tab: 'pipeline'|'form'|'checklist'|'description' = 'pipeline') {
     const s = (job?.pipeline_stages && Array.isArray(job.pipeline_stages) && job.pipeline_stages.length > 0)
       ? JSON.parse(JSON.stringify(job.pipeline_stages))
       : JSON.parse(JSON.stringify(DEFAULT_STAGES));
@@ -203,15 +204,19 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
     setEditingStages(s);
     setEditingFormSchema(f);
     setEditingChecklistLabels(cl);
+    setEditingPublicDesc(job?.public_description || '');
     setActiveTab(tab);
     setIsSettingsOpen(true);
   }
+
+  import { updateJobPublicDescription } from '../../adminActions';
 
   async function handleSaveStages() {
     setSavingStages(true);
     await updateJobPipelineStages(jobId, editingStages);
     await updateJobFormSchema(jobId, editingFormSchema);
     await updateJobChecklistLabels(jobId, editingChecklistLabels);
+    await updateJobPublicDescription(jobId, editingPublicDesc);
     await loadData();
     setSavingStages(false);
     setIsSettingsOpen(false);
@@ -841,6 +846,7 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                 { id: 'pipeline',  label: '1. Pipeline' },
                 { id: 'form',      label: '2. Form Candidatura' },
                 { id: 'checklist', label: '3. Checklist' },
+                { id: 'description', label: '4. Testo Annuncio' },
               ] as const).map(tab => (
                 <button
                   key={tab.id}
@@ -974,6 +980,20 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                 <div style={{ padding: '0.9rem 1rem', borderRadius: 10, background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.2)', fontSize: '0.83rem', color: '#818cf8', lineHeight: 1.6 }}>
                   💡 Le 5 voci corrispondono ai 5 checkbox nella checklist del candidato. Personalizzale in base al processo di selezione di questo ruolo.
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'description' && (
+              <div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+                  Il testo integrale del Job Ad che viene mostrato al candidato nella <strong>Pagina di Candidatura Pubblica</strong> e che descrive nel dettaglio il ruolo.
+                </p>
+                <textarea
+                  value={editingPublicDesc}
+                  onChange={e => setEditingPublicDesc(e.target.value)}
+                  placeholder="Selezioniamo uno chef de rang per noto ristorante..."
+                  style={{ width: '100%', minHeight: 250, padding: '1.5rem', borderRadius: 12, border: '1px solid var(--border-primary)', background: 'var(--bg-primary)', resize: 'vertical', fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.6, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}
+                />
               </div>
             )}
 
