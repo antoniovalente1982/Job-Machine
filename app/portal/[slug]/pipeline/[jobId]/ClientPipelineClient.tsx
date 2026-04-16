@@ -70,6 +70,7 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
 
   // Costruiamo lo stesso layout del kanban
   return (
+    <>
     <div style={{ display: 'flex', height: '100%', overflowX: 'auto', background: 'transparent', padding: '1.5rem 2rem' }}>
       {currentStages.map((stage: any, index: number) => {
         const sid = stage.id || stage.key;
@@ -160,62 +161,70 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
                   </div>
                 );
               })}
-              {cands.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '1rem', color: '#4a5568', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8 }}>
-                  Nessun candidato
-                </div>
               )}
             </div>
           </div>
         );
       })}
+    </div>
 
       {/* PANNELLO DETTAGLIO LATERALE (Read-Only) */}
       {selectedCandidate && (
-        <div style={{ width: 450, background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-primary)' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>{selectedCandidate.first_name} {selectedCandidate.last_name}</h3>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Dettagli Candidatura</div>
+        <div 
+          onClick={e => { if (e.target === e.currentTarget) setSelectedCandidate(null); }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'flex-end' }}
+        >
+          <div style={{ width: '100%', maxWidth: 520, background: '#0b1120', height: '100%', borderLeft: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', animation: 'slideInRight 0.28s ease-out' }}>
+            <div style={{ padding: '1.5rem 1.5rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#4f46e5,#818cf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.1rem' }}>
+                    {selectedCandidate.first_name?.[0]}{selectedCandidate.last_name?.[0]}
+                  </span>
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#e2e8f0' }}>{selectedCandidate.first_name} {selectedCandidate.last_name}</h3>
+                  <div style={{ fontSize: '0.85rem', color: '#6b7a90', marginTop: '0.15rem' }}>Dettagli Candidatura</div>
+                </div>
+              </div>
+              <button onClick={() => setSelectedCandidate(null)} style={{ background: 'rgba(255,255,255,0.07)', border: 'none', width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9eaab5' }}>
+                <X size={17} />
+              </button>
             </div>
-            <button onClick={() => setSelectedCandidate(null)} style={{ background: 'var(--border-light)', border: 'none', width: 36, height: 36, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>
-              <X size={20} />
-            </button>
-          </div>
           
           <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
             
             {/* Contact */}
-            <div style={{ background: 'var(--bg-primary)', padding: '1.25rem', borderRadius: 12, border: '1px solid var(--border-light)', marginBottom: '1.5rem' }}>
-              <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Contatti</h4>
+            <div style={{ background: '#1c2333', padding: '1.25rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1.5rem' }}>
+              <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#9eaab5', letterSpacing: '0.5px' }}>Contatti</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ fontSize: '0.95rem' }}><span style={{ color: 'var(--text-muted)' }}>Email:</span> <a href={`mailto:${selectedCandidate.email}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }}>{selectedCandidate.email}</a></div>
-                <div style={{ fontSize: '0.95rem' }}><span style={{ color: 'var(--text-muted)' }}>Telefono:</span> {selectedCandidate.phone || 'Non specificato'}</div>
+                <div style={{ fontSize: '0.95rem', color: '#e2e8f0' }}><span style={{ color: '#6b7a90' }}>Email:</span> <a href={`mailto:${selectedCandidate.email}`} style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>{selectedCandidate.email}</a></div>
+                <div style={{ fontSize: '0.95rem', color: '#e2e8f0' }}><span style={{ color: '#6b7a90' }}>Telefono:</span> {selectedCandidate.phone || 'Non specificato'}</div>
               </div>
             </div>
 
             {/* Curriculum */}
-            <div style={{ background: 'var(--bg-primary)', padding: '1.25rem', borderRadius: 12, border: '1px solid var(--border-light)', marginBottom: '1.5rem' }}>
-              <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Curriculum Vitae</h4>
+            <div style={{ background: '#1c2333', padding: '1.25rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1.5rem' }}>
+              <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#9eaab5', letterSpacing: '0.5px' }}>Curriculum Vitae</h4>
               {selectedCandidate.cv_file_path ? (
                  cvLoading ? (
-                   <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Caricamento CV...</div>
+                   <div style={{ fontSize: '0.9rem', color: '#6b7a90' }}>Caricamento CV...</div>
                  ) : cvUrl ? (
-                   <a href={cvUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'rgba(99,102,241,0.1)', color: '#818cf8', borderRadius: 8, textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.2)' }}>
+                   <a href={cvUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'rgba(99,102,241,0.15)', color: '#818cf8', borderRadius: 8, textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600, border: '1px solid rgba(99,102,241,0.3)' }}>
                      <FileText size={18} /> Apri e Scarica CV
                    </a>
                  ) : (
                    <div style={{ color: '#ef4444', fontSize: '0.9rem' }}>Errore caricamento PDF</div>
                  )
               ) : (
-                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Curriculum non allegato</div>
+                 <div style={{ fontSize: '0.9rem', color: '#6b7a90', fontStyle: 'italic' }}>Curriculum non allegato</div>
               )}
             </div>
 
             {/* Modulo Dati / Questionario */}
             {selectedCandidate.questionnaire_responses && Object.keys(selectedCandidate.questionnaire_responses).length > 0 && (
-              <div style={{ background: 'var(--bg-primary)', padding: '1.25rem', borderRadius: 12, border: '1px solid var(--border-light)', marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Risposte Questionario</h4>
+              <div style={{ background: '#1c2333', padding: '1.25rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1.5rem' }}>
+                <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#9eaab5', letterSpacing: '0.5px' }}>Risposte Questionario</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                    {Object.entries(selectedCandidate.questionnaire_responses).map(([key, value]) => {
                       const schemaItem = (initialJob?.form_schema || []).find((s:any) => s.id === key);
@@ -223,8 +232,8 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
                       const valStr = Array.isArray(value) ? value.join(', ') : String(value);
                       return (
                         <div key={key}>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.2rem' }}>{fieldLabel}</div>
-                          <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', background: 'var(--bg-secondary)', padding: '0.65rem 0.85rem', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                          <div style={{ fontSize: '0.8rem', color: '#6b7a90', fontWeight: 600, marginBottom: '0.3rem' }}>{fieldLabel}</div>
+                          <div style={{ fontSize: '0.95rem', color: '#e2e8f0', background: 'rgba(255,255,255,0.03)', padding: '0.75rem 0.85rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
                             {valStr || '-'}
                           </div>
                         </div>
@@ -239,12 +248,13 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
               <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#10b981', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <MessageSquare size={14} /> Note Agenzia per il Cliente
               </h4>
-              <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                {selectedCandidate.client_notes || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Nessuna nota condivisa per questo candidato.</span>}
+              <div style={{ fontSize: '0.95rem', color: '#e2e8f0', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {selectedCandidate.client_notes || <span style={{ color: '#6b7a90', fontStyle: 'italic' }}>Nessuna nota condivisa per questo candidato.</span>}
               </div>
             </div>
 
           </div>
+        </div>
         </div>
       )}
 
@@ -254,6 +264,6 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
           to { transform: translateX(0); opacity: 1; }
         }
       `}} />
-    </div>
+    </>
   );
 }
