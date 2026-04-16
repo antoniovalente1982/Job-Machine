@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { createSupabaseClient } from '@/lib/supabase';
-import { X, User, FileText, ExternalLink, ClipboardList, MessageSquare } from 'lucide-react';
-import { getClientCvSignedUrl } from '@/app/portalActions'; // We will add this
+import { X, User, FileText, ExternalLink, ClipboardList, MessageSquare, Save } from 'lucide-react';
+import { getClientCvSignedUrl, moveCandidatePipelinePortal, updateClientNotesPortal } from '@/app/portalActions';
 
 const DEFAULT_STAGES = [
   { id: 'received',       name: 'Candidature ricevute', color: '#3b82f6', definition: "Candidature ricevute" },
@@ -51,13 +51,18 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
     ? initialJob.checklist_labels
     : DEFAULT_CHECKLIST_LABELS;
 
+  const [notesTemp, setNotesTemp] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+
   async function openCandidate(candidate: any) {
     setSelectedCandidate(candidate);
+    setNotesTemp(candidate.client_notes || '');
     setCvUrl(null);
     if (candidate.cv_file_path) {
       setCvLoading(true);
       try {
-        // Usa una Server Action protetta per estrarre il CV (così bypassiamo Supabase Auth anon restriction)
         const res = await getClientCvSignedUrl(slug, candidate.cv_file_path);
         if (res.url) setCvUrl(res.url);
       } catch (e) {
@@ -68,6 +73,45 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
     }
   }
 
+  async function handleSaveNotes() {
+    if (!selectedCandidate) return;
+    setSavingNotes(true);
+    try {
+      await updateClientNotesPortal(slug, selectedCandidate.id, notesTemp);
+      const updated = { ...selectedCandidate, client_notes: notesTemp };
+      setSelectedCandidate(updated);
+      setCandidates(prev => prev.map(c => c.id === selectedCandidate.id ? updated : c));
+    } catch (err) {
+      console.error(err);
+    }
+    setSavingNotes(false);
+  }
+
+  function handleDragStart(e: React.DragEvent, id: string) {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function handleDragOver(e: React.DragEvent, stageId: string) {
+    e.preventDefault();
+    setDragOverStage(stageId);
+    e.dataTransfer.dropEffect = 'move';
+  }
+  async function handleDrop(e: React.DragEvent, stage: string) {
+    e.preventDefault();
+    if (draggedId) {
+       // Optimistic update
+       setCandidates(prev => prev.map(c => c.id === draggedId ? { ...c, pipeline_stage: stage } : c));
+       try {
+         await moveCandidatePipelinePortal(slug, draggedId, stage);
+       } catch (err) {
+         console.error(err);
+       }
+       setDraggedId(null);
+    }
+    setDragOverStage(null);
+  }
+  function handleDragEnd() { setDraggedId(null); setDragOverStage(null); }
+
   // Costruiamo lo stesso layout del kanban
   return (
     <>
@@ -77,15 +121,23 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
         const cands = candidates.filter(c => c.pipeline_stage === sid || (sid === 'received' && !c.pipeline_stage));
         const stageColor = stage.color || '#6366f1';
         
+        const isDragTarget = dragOverStage === sid;
+
         return (
-          <div key={sid} style={{ 
-            minWidth: 270, maxWidth: 270, flex: '0 0 270px', 
-            background: '#0d1117', 
-            borderRadius: 14, 
-            border: '2px solid rgba(255,255,255,0.06)', 
-            display: 'flex', flexDirection: 'column',
-            marginRight: '1rem',
-            position: 'relative'
+          <div 
+            key={sid} 
+            onDragOver={e => handleDragOver(e, sid)}
+            onDrop={e => handleDrop(e, sid)}
+            onDragLeave={() => setDragOverStage(null)}
+            style={{ 
+              minWidth: 270, maxWidth: 270, flex: '0 0 270px', 
+              background: isDragTarget ? \`linear-gradient(180deg, \${hexToRgba(stageColor, 0.18)} 0%, #0d1117 100%)\` : '#0d1117',
+              borderRadius: 14, 
+              border: isDragTarget ? \`2px solid \${hexToRgba(stageColor, 0.6)}\` : '2px solid rgba(255,255,255,0.06)', 
+              display: 'flex', flexDirection: 'column',
+              marginRight: '1rem',
+              position: 'relative',
+              transition: 'all 0.2s'
           }}>
             
             {/* Accent top bar */}
@@ -120,18 +172,23 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
                 if (candidate.checklist_cv_done) cCount++;
                 const hasCv = !!candidate.cv_file_path;
 
+                const isDragging = draggedId === candidate.id;
+
                 return (
                   <div
                     key={candidate.id}
+                    draggable
+                    onDragStart={e => handleDragStart(e, candidate.id)}
+                    onDragEnd={handleDragEnd}
                     onClick={() => openCandidate(candidate)}
                     style={{
                       background: '#1c2333',
                       borderRadius: 9,
                       padding: '0.7rem 0.75rem',
-                      cursor: 'pointer',
+                      cursor: 'grab',
                       border: isSelected ? `2px solid ${stageColor}` : '1px solid rgba(255,255,255,0.03)',
                       transition: 'border-color 0.2s',
-                      boxShadow: isSelected ? `0 0 15px ${hexToRgba(stageColor, 0.25)}` : '0 1px 3px rgba(0,0,0,0.3)',
+                      boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.5)' : isSelected ? `0 0 15px ${hexToRgba(stageColor, 0.25)}` : '0 1px 3px rgba(0,0,0,0.3)',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
@@ -247,14 +304,26 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
               </div>
             )}
 
-            {/* Note Agenzia per il Cliente */}
+            {/* Note Agenzia per il Cliente (Modificabili dal cliente) */}
             <div style={{ background: 'rgba(16,185,129,0.05)', padding: '1.25rem', borderRadius: 12, border: '1px solid rgba(16,185,129,0.2)', marginBottom: '1.5rem' }}>
-              <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#10b981', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <MessageSquare size={14} /> Note Agenzia per il Cliente
-              </h4>
-              <div style={{ fontSize: '0.95rem', color: '#e2e8f0', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                {selectedCandidate.client_notes || <span style={{ color: '#6b7a90', fontStyle: 'italic' }}>Nessuna nota condivisa per questo candidato.</span>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.85rem', textTransform: 'uppercase', color: '#10b981', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <MessageSquare size={14} /> Note sul Candidato
+                </h4>
+                <button
+                  onClick={handleSaveNotes}
+                  disabled={savingNotes || notesTemp === (selectedCandidate.client_notes || '')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.75rem', background: '#10b981', color: 'white', border: 'none', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, cursor: (savingNotes || notesTemp === (selectedCandidate.client_notes || '')) ? 'default' : 'pointer', opacity: (savingNotes || notesTemp === (selectedCandidate.client_notes || '')) ? 0.5 : 1 }}
+                >
+                  <Save size={12} /> {savingNotes ? 'Salvataggio...' : 'Salva'}
+                </button>
               </div>
+              <textarea
+                value={notesTemp}
+                onChange={e => setNotesTemp(e.target.value)}
+                placeholder="Aggiungi qui note e valutazioni su questo candidato (condivise con l'agenzia)..."
+                style={{ width: '100%', minHeight: '120px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '0.8rem', color: '#e2e8f0', fontSize: '0.9rem', resize: 'vertical', lineHeight: 1.5 }}
+              />
             </div>
 
           </div>

@@ -127,3 +127,40 @@ export async function getClientCvSignedUrl(slug: string, filePath: string) {
   return { url: data.signedUrl };
 }
 
+export async function moveCandidatePipelinePortal(slug: string, candidateId: string, newStage: string) {
+  const session = await getPortalSession();
+  if (!session || !session.isAuthenticated || session.slug !== slug) {
+    throw new Error('Access denied');
+  }
+
+  const sb = getPortalClient();
+  const { error } = await sb
+    .from('candidates')
+    .update({ pipeline_stage: newStage })
+    .eq('id', candidateId);
+
+  if (error) {
+    console.error('Error updating candidate stage portal:', error);
+    throw error;
+  }
+  return { success: true };
+}
+
+export async function updateClientNotesPortal(slug: string, candidateId: string, notes: string) {
+  const session = await getPortalSession();
+  if (!session || !session.isAuthenticated || session.slug !== slug) {
+    throw new Error('Access denied');
+  }
+
+  const sb = getPortalClient();
+  const { error } = await sb
+    .from('candidates')
+    .update({ client_notes: notes })
+    .eq('id', candidateId);
+
+  if (error) {
+    console.error('Error updating candidate notes portal:', error);
+    throw error;
+  }
+  return { success: true };
+}
