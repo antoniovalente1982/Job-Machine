@@ -246,10 +246,13 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
   }
 
   async function handleAddCard(stageId: string) {
-    if (!addFirstName.trim() || !addLastName.trim()) return;
+    if (addingCard || !addFirstName.trim() || !addLastName.trim()) return;
     setAddingCard(true);
     await addManualCandidate(jobId, addFirstName.trim(), addLastName.trim(), addEmail.trim(), stageId);
     await loadData();
+    setAddFirstName('');
+    setAddLastName('');
+    setAddEmail('');
     setAddCardStageId(null);
     setAddingCard(false);
   }

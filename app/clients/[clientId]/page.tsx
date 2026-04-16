@@ -154,8 +154,24 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                 </span>
               )}
             </div>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+              <button 
+                onClick={async () => {
+                  const pwd = prompt(`Imposta la password di accesso per il Responsabile della struttura "${structure.name}":\nLascia vuoto per rimuoverla.`);
+                  if (pwd !== null) {
+                    const { updateStructurePassword } = await import('@/app/adminClientActions');
+                    const res = await updateStructurePassword(structure.id, pwd);
+                    if (res && typeof res === 'object' && res.error) alert('Errore (hai eseguito la migrazione DB?):\n' + res.error);
+                    else alert('Password Responsabile salvata con successo!');
+                  }
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', padding: '0.4rem 0.8rem', borderRadius: 8, fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text-primary)' }}
+              >
+                🔑 Accesso Manager Esterno
+              </button>
+            </div>
           </div>
-
           {/* Job Positions */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
             {jobs.map((job: any) => {

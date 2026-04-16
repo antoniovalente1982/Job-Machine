@@ -33,3 +33,19 @@ export async function updateStructureData(structureId: string, context?: string)
     
   if (error) console.error('Error updating structure data:', error);
 }
+
+export async function updateStructurePassword(structureId: string, password?: string) {
+  const sb = getClient();
+  // Se la colonna `structure_password` non esiste ancora, provocherà un errore.
+  // Assicurarsi di aver lanciato la migrazione prima.
+  const { error } = await sb
+    .from('structures')
+    .update({ structure_password: password || null })
+    .eq('id', structureId);
+    
+  if (error) {
+    console.error('Error updating structure password:', error);
+    return { error: error.message };
+  }
+  return { success: true };
+}

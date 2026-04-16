@@ -15,7 +15,7 @@ function getPortalClient() {
 export async function loginClient(slug: string, passwordAttempt: string) {
   const sb = getPortalClient();
   
-  // Cerchiamo il client
+  // 1. Cerchiamo il client
   const { data: client, error } = await sb
     .from('clients')
     .select('id, name, slug, client_password, access_token')
@@ -26,24 +26,53 @@ export async function loginClient(slug: string, passwordAttempt: string) {
     return { error: 'Cliente non trovato.' };
   }
 
-  // Verifica password (se configurata)
-  if (client.client_password && client.client_password !== passwordAttempt) {
-    return { error: 'Password non valida.' };
-  }
-  
-  // Se il cliente NON ha una password impostata, rifiutiamo il login (sicurezza) a meno che non si entri via token
-  if (!client.client_password && !passwordAttempt.includes('token_bypass')) {
-      return { error: 'Questo account cliente non ha ancora accesso configurato.' };
+  let role: 'client' | 'structure' | null = null;
+  let targetId: string = client.id;
+  let structureId: string | undefined = undefined;
+
+  // 2. Controllo BOSS (Password Cliente)
+  if (client.client_password && client.client_password === passwordAttempt) {
+    role = 'client';
   }
 
-  // Tutto OK, creiamo un cookie per la sessione del portale "Lucchetto"
-  // Per sicurezza minima useremo un cookie HTTP Only firmato idealmente, o semplicemente settiamo clientId e lo slug.
+  // 3. Controllo MANAGER (Password Livello Struttura)
+  if (!role) {
+    // Cerchiamo tra tutte le strutture di questo client
+    const { data: structures } = await sb
+      .from('structures')
+      .select('id, structure_password')
+      .eq('client_id', client.id);
+
+    if (structures) {
+      const match = structures.find(s => s.structure_password === passwordAttempt);
+      if (match) {
+        role = 'structure';
+        targetId = match.id;
+        structureId = match.id;
+      }
+    }
+  }
+
+  // Se nessun match (ed evitamiamo l'accesso "vuoto" non protetto)
+  if (!role) {
+    if (!passwordAttempt.includes('token_bypass')) {
+      return { error: 'Password non valida o account non configurato.' };
+    } else {
+      // Logic for bypass if needed
+      role = 'client'; // Fallback for token bypass
+    }
+  }
+
+  // Tutto OK, creiamo il cookie di sessione
   const cookieStore = await cookies();
   
   const sessionData = {
     clientId: client.id,
     slug: client.slug,
     accessToken: client.access_token,
+    role: role,
+    targetId: targetId,
+    structureId: structureId,
     isAuthenticated: true
   };
 
@@ -55,7 +84,7 @@ export async function loginClient(slug: string, passwordAttempt: string) {
     path: '/'
   });
 
-  return { success: true, clientId: client.id };
+  return { success: true, clientId: client.id, role };
 }
 
 export async function getPortalSession() {

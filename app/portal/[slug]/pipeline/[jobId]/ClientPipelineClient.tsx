@@ -29,25 +29,19 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export default function ClientPipelineClient({ jobId, initialJob, slug }: { jobId: string, initialJob: any, slug: string }) {
-  const [candidates, setCandidates] = useState<any[]>([]);
+export default function ClientPipelineClient({ jobId, initialJob, slug, initialCandidates }: { jobId: string, initialJob: any, slug: string, initialCandidates: any[] }) {
+  const [candidates, setCandidates] = useState<any[]>(initialCandidates || []);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   
   const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [cvLoading, setCvLoading] = useState(false);
 
-  useEffect(() => { loadCandidates(); }, [jobId]);
-
-  async function loadCandidates() {
-    const sb = createSupabaseClient();
-    const { data: cands } = await sb
-      .from('candidates')
-      .select('*')
-      .eq('job_id', jobId)
-      .order('created_at', { ascending: false });
-    
-    setCandidates(cands || []);
-  }
+  // Manteniamo in sync con le prop del server se la pagina revalida
+  useEffect(() => {
+    if (initialCandidates) {
+      setCandidates(initialCandidates);
+    }
+  }, [initialCandidates]);
 
   const currentStages = (initialJob?.pipeline_stages && Array.isArray(initialJob.pipeline_stages) && initialJob.pipeline_stages.length > 0)
     ? initialJob.pipeline_stages

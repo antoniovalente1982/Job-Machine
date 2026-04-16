@@ -32,6 +32,14 @@ export default async function ClientPortalPipeline({ params }: { params: Promise
 
   const client = job.structure.client;
 
+  // Estraiamo i candidati LATO SERVER usando la Service Key. 
+  // Questo risolve i problemi e le limitazioni delle RLS per i ruoli "Anonimi" usati nel browser dal cliente,
+  // perché ci fidiamo della validazione della sessione custom appena effettuata!
+  const { data: initialCandidates } = await sb
+    .from('candidates')
+    .select('*')
+    .eq('job_id', jobId);
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0b1120', color: 'white', overflow: 'hidden' }}>
       
@@ -58,7 +66,7 @@ export default async function ClientPortalPipeline({ params }: { params: Promise
 
       {/* ── KANBAN COMPONENT ── */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
-        <ClientPipelineClient jobId={jobId} initialJob={job} slug={slug} />
+        <ClientPipelineClient jobId={jobId} initialJob={job} slug={slug} initialCandidates={initialCandidates || []} />
       </div>
 
     </div>

@@ -38,14 +38,15 @@ export default function ApplicationForm({ params }: { params: Promise<{ id: stri
   }, [jobId]);
 
   async function clientAction(formData: FormData) {
+    if (submitting) return; // Blocco immediato se già in corso
     setSubmitting(true);
     const res = await submitApplication(jobId, formData);
     if (res.success) {
       setSuccess(true);
     } else {
       alert(res.message);
+      setSubmitting(false); // Sblocco solo su errore
     }
-    setSubmitting(false);
   }
 
   if (success) {
