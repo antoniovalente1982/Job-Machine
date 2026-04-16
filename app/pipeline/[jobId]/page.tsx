@@ -349,7 +349,7 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
             </p>
           </div>
           <button
-            onClick={handleOpenSettings}
+            onClick={() => handleOpenSettings()}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', color: 'var(--text-primary)' }}
           >
             ⚙️ Impostazioni Pipeline
