@@ -145,9 +145,9 @@ export default function SettingsPage() {
               </div>
             ) : (
               <form action={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <input type="text" name="full_name" required placeholder="Nome completo (es. Federica Rossi)" 
+                <input type="text" name="full_name" required autoComplete="off" placeholder="Nome completo (es. Federica Rossi)" 
                   style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
-                <input type="email" name="email" required placeholder="Email" 
+                <input type="email" name="email" required autoComplete="off" placeholder="Email" 
                   style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <select name="role" defaultValue="admin"
                   style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }}>
