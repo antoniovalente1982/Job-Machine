@@ -61,7 +61,7 @@ export default async function ClientPortalDashboard({ params }: { params: Promis
         </div>
         
         <form action={async () => {
-          'use action';
+          'use server';
           await logoutClient();
           redirect(`/portal/${slug}/login`);
         }}>
