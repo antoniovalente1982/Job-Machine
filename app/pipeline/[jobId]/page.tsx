@@ -371,9 +371,16 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
 
       {/* ── Kanban Board ── */}
       <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '2rem', minHeight: '70vh', alignItems: 'flex-start' }}>
-        {currentStages.map((stage: any) => {
+        {currentStages.map((stage: any, stageIndex: number) => {
           const sid = stage.id || stage.key;
-          const stageCards = candidates.filter(c => c.pipeline_stage === sid || (sid === 'received' && !c.pipeline_stage));
+          const allStageIds = currentStages.map((s: any) => s.id || s.key);
+          const isFirstCol = stageIndex === 0;
+          const stageCards = candidates.filter(c => {
+            if (c.pipeline_stage === sid) return true;
+            // Candidati senza stage O con stage orfano (non più esistente) → prima colonna
+            if (isFirstCol && (!c.pipeline_stage || !allStageIds.includes(c.pipeline_stage))) return true;
+            return false;
+          });
           const isDragTarget = dragOverStage === sid;
           const stageColor  = stage.color || '#6366f1';
           const isEditingThisCol = editingColId === sid;

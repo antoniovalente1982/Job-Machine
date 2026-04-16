@@ -62,7 +62,8 @@ export async function submitApplication(jobId: string, formData: FormData) {
         phone,
         questionnaire_responses,
         cv_file_path,
-        status: 'form_completed' // Salta il 'new' e andiamo dritti al completamento
+        status: 'form_completed',
+        pipeline_stage: 'received' // Posiziona nella prima colonna della Pipeline
       })
       .select()
       .single();

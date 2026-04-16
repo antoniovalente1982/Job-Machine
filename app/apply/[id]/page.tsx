@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { submitApplication } from '../../actions';
 import styles from './page.module.css';
 import { createSupabaseClient } from '@/lib/supabase';
@@ -11,6 +11,7 @@ export default function ApplicationForm({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const submittingRef = useRef(false);
 
   // Dato che questa è una Client Component, fetcho i dettagli tramite API (se ci fosse un backend locale) 
   // O semplicemente passiamo JobID al server e ci fidiamo
@@ -40,14 +41,16 @@ export default function ApplicationForm({ params }: { params: Promise<{ id: stri
   }, [jobId]);
 
   async function clientAction(formData: FormData) {
-    if (submitting) return; // Blocco immediato se già in corso
+    if (submittingRef.current) return; // Blocco SINCRONO immediato (ref è più veloce di state)
+    submittingRef.current = true;
     setSubmitting(true);
     const res = await submitApplication(jobId, formData);
     if (res.success) {
       setSuccess(true);
     } else {
       alert(res.message);
-      setSubmitting(false); // Sblocco solo su errore
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
 
