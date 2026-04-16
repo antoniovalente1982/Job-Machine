@@ -17,7 +17,8 @@ import {
   moveCandidatePipeline,
   addManualCandidate,
   getCvSignedUrl,
-  updateJobChecklistLabels
+  updateJobChecklistLabels,
+  updateJobPublicDescription
 } from '../../adminActions';
 
 const DEFAULT_STAGES = [
@@ -208,8 +209,6 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
     setActiveTab(tab);
     setIsSettingsOpen(true);
   }
-
-  import { updateJobPublicDescription } from '../../adminActions';
 
   async function handleSaveStages() {
     setSavingStages(true);
