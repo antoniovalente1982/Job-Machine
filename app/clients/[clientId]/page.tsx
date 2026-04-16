@@ -7,7 +7,8 @@ import CopyLinkButton from '../../components/CopyLinkButton';
 import styles from '../../dashboard.module.css';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createStructure, createJobPosition, updateJobStatus } from '../../adminActions';
-import { ArrowLeft, Plus, MapPin, Building2, Play, Pause, XCircle, Archive } from 'lucide-react';
+import { updateClientPortalData, updateStructureData } from '../../adminClientActions';
+import { ArrowLeft, Plus, MapPin, Building2, Play, Pause, XCircle, Archive, Lock, Link as LinkIcon, Save } from 'lucide-react';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   open: { label: 'Aperta', color: '#059669', bg: '#ecfdf5' },
@@ -61,6 +62,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
     await loadClient();
   }
 
+  async function handleSaveClientSettings() {
+    if (!client) return;
+    setLoading(true);
+    await updateClientPortalData(client.id, client.client_password, client.market_sector, client.company_context);
+    alert('Impostazioni salvate con successo!');
+    setLoading(false);
+  }
+
+
   if (!client) {
     return <DashboardShell><p style={{color: 'var(--text-muted)'}}>Caricamento...</p></DashboardShell>;
   }
@@ -80,6 +90,52 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
             <input type="checkbox" checked={showArchived} onChange={e => setShowArchived(e.target.checked)} />
             Mostra archiviate
           </label>
+        </div>
+      </div>
+
+      {/* Portale Cliente (Lucchetto) & Contesto */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <Lock size={20} style={{ color: 'var(--accent-primary)' }} />
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Portale Cliente & Dati Aziendali</h3>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Link Accesso "Lucchetto"</label>
+            <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--bg-secondary)', padding: '0.65rem 0.9rem', borderRadius: 8, border: '1px solid var(--border-light)', alignItems: 'center' }}>
+              <LinkIcon size={14} style={{ color: 'var(--text-muted)' }} />
+              <input type="text" readOnly value={`https://jobmachine.biz/portal/${client.slug}`} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', width: '100%', fontSize: '0.85rem', outline: 'none' }} />
+              <CopyLinkButton link={`https://jobmachine.biz/portal/${client.slug}`} />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Password di Accesso (Opzionale)</label>
+            <input 
+              type="text" 
+              placeholder="Es. CMG2026" 
+              value={client.client_password || ''} 
+              onChange={e => setClient({...client, client_password: e.target.value})}
+              style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 8, border: '1px solid var(--border-light)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div>
+             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Settore di Mercato</label>
+             <input type="text" placeholder="Es. Hotellerie 4-5 Stelle, Ristorazione di Lusso..." value={client.market_sector || ''} onChange={e => setClient({...client, market_sector: e.target.value})} style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 8, border: '1px solid var(--border-light)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+          </div>
+          <div>
+             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Contesto / Cultura Aziendale</label>
+             <textarea placeholder="Note sul cliente, come lavorano, benefit offerti, particolarità..." value={client.company_context || ''} onChange={e => setClient({...client, company_context: e.target.value})} style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 8, border: '1px solid var(--border-light)', background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: 80 }} />
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={handleSaveClientSettings} disabled={loading} style={{ padding: '0.65rem 1.5rem', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Save size={16} /> {loading ? 'Salvataggio...' : 'Salva Dati Cliente'}
+          </button>
         </div>
       </div>
 

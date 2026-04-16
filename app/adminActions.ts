@@ -191,3 +191,45 @@ export async function moveCandidatePipeline(
   return { success: true };
 }
 
+// === CANDIDATI MANUALI PIPELINE ===
+
+export async function addManualCandidate(jobId: string, firstName: string, lastName: string, email: string, stage: string) {
+  const { error } = await supabase.from('candidates').insert({
+    job_id: jobId,
+    first_name: firstName,
+    last_name: lastName,
+    email: email,
+    pipeline_stage: stage,
+    checklist_msg1_sent: false,
+    checklist_msg2_sent: false,
+    checklist_quest_done: false,
+    checklist_remind_cv: false,
+    checklist_cv_done: false,
+  });
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}
+
+// === CV DOWNLOAD URL ===
+
+export async function getCvSignedUrl(filePath: string): Promise<{ url: string | null; error?: string }> {
+  const { data, error } = await supabase.storage
+    .from('resumes')
+    .createSignedUrl(filePath, 60 * 60); // 1 ora di validità
+  if (error) return { url: null, error: error.message };
+  return { url: data.signedUrl };
+}
+
+// === CHECKLIST LABELS PERSONALIZZATE PER JOB ===
+
+export async function updateJobChecklistLabels(jobId: string, labels: string[]) {
+  const { error } = await supabase
+    .from('job_positions')
+    .update({ checklist_labels: labels })
+    .eq('id', jobId);
+  if (error) return { error: error.message };
+  revalidatePath('/');
+  return { success: true };
+}
+
