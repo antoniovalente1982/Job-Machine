@@ -6,17 +6,18 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export default async function ClientPortalLogin({ params }: { params: { slug: string } }) {
+export default async function ClientPortalLogin({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const session = await getPortalSession();
   
   // Se ha già accesso a questo portale, lo rimando alla dashboard
-  if (session?.isAuthenticated && session.slug === params.slug) {
-    redirect(`/portal/${params.slug}`);
+  if (session?.isAuthenticated && session.slug === slug) {
+    redirect(`/portal/${slug}`);
   }
 
   // Preleviamo il nome e logo del client
   const sb = createClient(supabaseUrl, supabaseKey);
-  const { data: client } = await sb.from('clients').select('name, logo_url').eq('slug', params.slug).single();
+  const { data: client } = await sb.from('clients').select('name, logo_url').eq('slug', slug).single();
 
   if (!client) {
     return (
@@ -45,7 +46,7 @@ export default async function ClientPortalLogin({ params }: { params: { slug: st
           Inserisci la chiave di accesso per accedere all'ambiente di {client.name}.
         </p>
 
-        <PortalLoginClient slug={params.slug} />
+        <PortalLoginClient slug={slug} />
 
         <div style={{ marginTop: '2rem', fontSize: '0.75rem', color: '#64748b' }}>
           <p>Potenziato da Job Machine</p>

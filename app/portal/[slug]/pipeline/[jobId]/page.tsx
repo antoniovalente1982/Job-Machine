@@ -9,11 +9,12 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 // se la RLS policy non è perfettamente settata per i candidate read senza Auth.
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export default async function ClientPortalPipeline({ params }: { params: { slug: string, jobId: string } }) {
+export default async function ClientPortalPipeline({ params }: { params: Promise<{ slug: string, jobId: string }> }) {
+  const { slug, jobId } = await params;
   const session = await getPortalSession();
   
-  if (!session || !session.isAuthenticated || session.slug !== params.slug) {
-    redirect(`/portal/${params.slug}/login`);
+  if (!session || !session.isAuthenticated || session.slug !== slug) {
+    redirect(`/portal/${slug}/login`);
   }
 
   const sb = createClient(supabaseUrl, supabaseKey);
@@ -22,7 +23,7 @@ export default async function ClientPortalPipeline({ params }: { params: { slug:
   const { data: job } = await sb
     .from('job_positions')
     .select('*, structure:structures!inner(id, name, client_id, client:clients(id, name, logo_url))')
-    .eq('id', params.jobId)
+    .eq('id', jobId)
     .single();
 
   if (!job || job.structure.client_id !== session.clientId) {
@@ -37,7 +38,7 @@ export default async function ClientPortalPipeline({ params }: { params: { slug:
       {/* ── HEADER PORTALE CLIENTE ── */}
       <header style={{ flexShrink: 0, background: '#111827', borderBottom: '1px solid #1e293b', padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <Link href={`/portal/${params.slug}`} style={{ color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
+          <Link href={`/portal/${slug}`} style={{ color: '#94a3b8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem' }}>
             <span>← Torna alla Dashboard</span>
           </Link>
           <div style={{ width: '1px', height: '24px', background: '#1e293b' }}></div>
@@ -57,7 +58,7 @@ export default async function ClientPortalPipeline({ params }: { params: { slug:
 
       {/* ── KANBAN COMPONENT ── */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
-        <ClientPipelineClient jobId={params.jobId} initialJob={job} slug={params.slug} />
+        <ClientPipelineClient jobId={jobId} initialJob={job} slug={slug} />
       </div>
 
     </div>

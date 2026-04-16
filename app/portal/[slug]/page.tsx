@@ -6,12 +6,13 @@ import Link from 'next/link';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export default async function ClientPortalDashboard({ params }: { params: { slug: string } }) {
+export default async function ClientPortalDashboard({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const session = await getPortalSession();
   
   // Validazione sessione: se non c'è, o se lo slug del cookie non matcha lo slug dell'URL, login
-  if (!session || !session.isAuthenticated || session.slug !== params.slug) {
-    redirect(`/portal/${params.slug}/login`);
+  if (!session || !session.isAuthenticated || session.slug !== slug) {
+    redirect(`/portal/${slug}/login`);
   }
 
   const sb = createClient(supabaseUrl, supabaseKey);
@@ -62,7 +63,7 @@ export default async function ClientPortalDashboard({ params }: { params: { slug
         <form action={async () => {
           'use action';
           await logoutClient();
-          redirect(`/portal/${params.slug}/login`);
+          redirect(`/portal/${slug}/login`);
         }}>
           <button type="submit" style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid #334155', color: '#cbd5e1', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem' }}>
             Esci
@@ -85,7 +86,7 @@ export default async function ClientPortalDashboard({ params }: { params: { slug
             </div>
           ) : (
             jobData.map((job) => (
-              <Link key={job.id} href={`/portal/${params.slug}/pipeline/${job.id}`} style={{ textDecoration: 'none' }}>
+              <Link key={job.id} href={`/portal/${slug}/pipeline/${job.id}`} style={{ textDecoration: 'none' }}>
                 <div style={{ 
                   background: '#111827', 
                   border: '1px solid #1e293b', 
