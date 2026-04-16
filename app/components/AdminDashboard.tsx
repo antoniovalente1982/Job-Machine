@@ -4,7 +4,7 @@ import { useState } from 'react';
 import styles from './AdminDashboard.module.css';
 import pageStyles from '../page.module.css';
 import CopyLinkButton from './CopyLinkButton';
-import { ChefHat, Utensils, UtensilsCrossed, Wine, Coffee, Wrench, Shirt, ConciergeBell, Plus, X } from 'lucide-react';
+import { ChefHat, Utensils, UtensilsCrossed, Wine, Coffee, Wrench, Shirt, ConciergeBell, Plus, X, FileText } from 'lucide-react';
 import { createClient, createStructure, createJobPosition } from '../adminActions';
 
 const iconMap: Record<string, any> = { ChefHat, Utensils, UtensilsCrossed, Wine, Coffee, Wrench, Shirt, ConciergeBell };
@@ -112,6 +112,24 @@ export default function AdminDashboard({ clients }: { clients: any[] }) {
                             </svg>
                             <span>Trello</span>
                           </a>
+                          <button 
+                            onClick={(e) => {
+                              // Avoid card click or pipeline routing
+                              e.preventDefault();
+                              if (role.public_description) {
+                                navigator.clipboard.writeText(role.public_description);
+                                alert('Testo annuncio copiato negli appunti! Ora puoi incollarlo sui Social.');
+                              } else {
+                                alert('Non hai ancora impostato il testo annuncio! Entra in "Pipeline" e poi clicca sull\'ingranaggio "Impostazioni".');
+                              }
+                            }}
+                            className={pageStyles.trelloButton} 
+                            style={{ flex: 1, padding: '0.75rem 0.5rem', fontSize: '0.85rem' }}
+                            title="Copia Testo Annuncio"
+                          >
+                            <FileText size={14} />
+                            <span>Testo</span>
+                          </button>
                           <CopyLinkButton 
                             id={role.id}
                             className={pageStyles.trelloButton} 

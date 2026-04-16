@@ -8,7 +8,7 @@ import styles from '../../dashboard.module.css';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createStructure, createJobPosition, updateJobStatus } from '../../adminActions';
 import { updateClientPortalData, updateStructureData } from '../../adminClientActions';
-import { ArrowLeft, Plus, MapPin, Building2, Play, Pause, XCircle, Archive, Lock, Link as LinkIcon, Save } from 'lucide-react';
+import { ArrowLeft, Plus, MapPin, Building2, Play, Pause, XCircle, Archive, Lock, Link as LinkIcon, Save, FileText } from 'lucide-react';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   open: { label: 'Aperta', color: '#059669', bg: '#ecfdf5' },
@@ -251,6 +251,20 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
                     <button onClick={() => router.push(`/pipeline/${job.id}`)} style={{ flex: 1, padding: '0.5rem', background: 'var(--accent-primary)', border: 'none', borderRadius: 6, color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}>
                       Pipeline
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (job.public_description) {
+                          navigator.clipboard.writeText(job.public_description);
+                          alert('Testo annuncio copiato negli appunti! Ora puoi incollarlo su Facebook/LinkedIn.');
+                        } else {
+                          alert('Non hai ancora impostato il testo annuncio! Entra in Pipeline -> ⚙️ Impostazioni -> 4. Testo Annuncio (o Modifica struttuta da AdminDashboard se non hai lo snapshot aggiornato).');
+                        }
+                      }}
+                      style={{ flex: 1, padding: '0.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 6, color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+                      title="Copia l'Annuncio di testo per i Social"
+                    >
+                      <FileText size={14} /> Testo
                     </button>
                     <CopyLinkButton
                       id={job.id}
