@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import DashboardShell from '../components/DashboardShell';
 import styles from '../dashboard.module.css';
-import { FileText, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { FileText, Plus, Pencil, Trash2, X, Copy } from 'lucide-react';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createTemplateMessage, updateTemplateMessage, deleteTemplateMessage } from '../adminActions';
 
@@ -103,6 +103,16 @@ export default function TemplatesPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', paddingRight: '2rem' }}>{t.title}</h3>
                 <div style={{ display: 'flex', gap: '0.4rem', position: 'absolute', top: '1.2rem', right: '1.2rem' }}>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(t.body);
+                      alert('Testo copiato negli appunti!');
+                    }} 
+                    style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: 'none', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    title="Copia testo"
+                  >
+                    <Copy size={13} />
+                  </button>
                   <button onClick={() => openEdit(t)} style={{ background: 'rgba(99,102,241,0.1)', color: '#818cf8', border: 'none', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     <Pencil size={14} />
                   </button>
