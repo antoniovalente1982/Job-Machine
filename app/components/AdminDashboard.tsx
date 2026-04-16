@@ -4,7 +4,7 @@ import { useState } from 'react';
 import styles from './AdminDashboard.module.css';
 import pageStyles from '../page.module.css';
 import CopyLinkButton from './CopyLinkButton';
-import { ChefHat, Utensils, UtensilsCrossed, Wine, Coffee, Wrench, Shirt, ConciergeBell, Plus, X, FileText } from 'lucide-react';
+import { ChefHat, Utensils, UtensilsCrossed, Wine, Coffee, Wrench, Shirt, ConciergeBell, Plus, X, FileText, Check, AlertCircle } from 'lucide-react';
 import { createClient, createStructure, createJobPosition } from '../adminActions';
 
 const iconMap: Record<string, any> = { ChefHat, Utensils, UtensilsCrossed, Wine, Coffee, Wrench, Shirt, ConciergeBell };
@@ -14,6 +14,7 @@ export default function AdminDashboard({ clients }: { clients: any[] }) {
   const [modal, setModal] = useState<'client' | 'structure' | 'job' | null>(null);
   const [activeStructureContext, setActiveStructureContext] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<{ id: string, status: 'success' | 'error' } | null>(null);
 
   const activeClient = clients.find(c => c.id === activeClientId);
 
@@ -114,21 +115,30 @@ export default function AdminDashboard({ clients }: { clients: any[] }) {
                           </a>
                           <button 
                             onClick={(e) => {
-                              // Avoid card click or pipeline routing
                               e.preventDefault();
                               if (role.public_description) {
                                 navigator.clipboard.writeText(role.public_description);
-                                alert('Testo annuncio copiato negli appunti! Ora puoi incollarlo sui Social.');
+                                setCopyStatus({ id: role.id, status: 'success' });
                               } else {
-                                alert('Non hai ancora impostato il testo annuncio! Entra in "Pipeline" e poi clicca sull\'ingranaggio "Impostazioni".');
+                                setCopyStatus({ id: role.id, status: 'error' });
                               }
+                              setTimeout(() => setCopyStatus(null), 2000);
                             }}
                             className={pageStyles.trelloButton} 
-                            style={{ flex: 1, padding: '0.75rem 0.5rem', fontSize: '0.85rem' }}
+                            style={{ 
+                              flex: 1, padding: '0.75rem 0.5rem', fontSize: '0.85rem',
+                              background: copyStatus?.id === role.id ? (copyStatus.status === 'success' ? '#dcfce7' : '#fee2e2') : 'inherit',
+                              color: copyStatus?.id === role.id ? (copyStatus.status === 'success' ? '#15803d' : '#b91c1c') : 'inherit',
+                              border: copyStatus?.id === role.id ? (copyStatus.status === 'success' ? '1px solid #22c55e' : '1px solid #ef4444') : '1px solid var(--border-light)',
+                              transition: 'all 0.2s'
+                            }}
                             title="Copia Testo Annuncio"
                           >
-                            <FileText size={14} />
-                            <span>Testo</span>
+                            {copyStatus?.id === role.id ? (
+                              copyStatus.status === 'success' ? <><Check size={14} /><span>Copiato</span></> : <><AlertCircle size={14} /><span>Vuoto</span></>
+                            ) : (
+                              <><FileText size={14} /><span>Testo</span></>
+                            )}
                           </button>
                           <CopyLinkButton 
                             id={role.id}

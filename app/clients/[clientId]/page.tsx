@@ -8,7 +8,7 @@ import styles from '../../dashboard.module.css';
 import { createSupabaseClient } from '@/lib/supabase';
 import { createStructure, createJobPosition, updateJobStatus } from '../../adminActions';
 import { updateClientPortalData, updateStructureData } from '../../adminClientActions';
-import { ArrowLeft, Plus, MapPin, Building2, Play, Pause, XCircle, Archive, Lock, Link as LinkIcon, Save, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, MapPin, Building2, Play, Pause, XCircle, Archive, Lock, Link as LinkIcon, Save, FileText, Check, AlertCircle } from 'lucide-react';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   open: { label: 'Aperta', color: '#059669', bg: '#ecfdf5' },
@@ -26,6 +26,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
   const [structureContext, setStructureContext] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<{ id: string, status: 'success' | 'error' } | null>(null);
 
   useEffect(() => { loadClient(); }, [clientId]);
 
@@ -256,15 +257,33 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                       onClick={() => {
                         if (job.public_description) {
                           navigator.clipboard.writeText(job.public_description);
-                          alert('Testo annuncio copiato negli appunti! Ora puoi incollarlo su Facebook/LinkedIn.');
+                          setCopyStatus({ id: job.id, status: 'success' });
                         } else {
-                          alert('Non hai ancora impostato il testo annuncio! Entra in Pipeline -> ⚙️ Impostazioni -> 4. Testo Annuncio (o Modifica struttuta da AdminDashboard se non hai lo snapshot aggiornato).');
+                          setCopyStatus({ id: job.id, status: 'error' });
                         }
+                        setTimeout(() => setCopyStatus(null), 2000);
                       }}
-                      style={{ flex: 1, padding: '0.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 6, color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}
+                      style={{ 
+                        flex: 1, padding: '0.5rem', 
+                        background: copyStatus?.id === job.id 
+                          ? (copyStatus.status === 'success' ? '#dcfce7' : '#fee2e2') 
+                          : 'var(--bg-secondary)', 
+                        border: copyStatus?.id === job.id 
+                          ? (copyStatus.status === 'success' ? '1px solid #22c55e' : '1px solid #ef4444') 
+                          : '1px solid var(--border-primary)', 
+                        borderRadius: 6, 
+                        color: copyStatus?.id === job.id 
+                          ? (copyStatus.status === 'success' ? '#15803d' : '#b91c1c') 
+                          : 'var(--text-primary)', 
+                        cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', transition: 'all 0.2s' 
+                      }}
                       title="Copia l'Annuncio di testo per i Social"
                     >
-                      <FileText size={14} /> Testo
+                      {copyStatus?.id === job.id ? (
+                        copyStatus.status === 'success' ? <><Check size={14} /> Copiato!</> : <><AlertCircle size={14} /> Vuoto</>
+                      ) : (
+                        <><FileText size={14} /> Testo</>
+                      )}
                     </button>
                     <CopyLinkButton
                       id={job.id}
