@@ -38,7 +38,7 @@ export async function loginClient(slug: string, passwordAttempt: string) {
 
   // Tutto OK, creiamo un cookie per la sessione del portale "Lucchetto"
   // Per sicurezza minima useremo un cookie HTTP Only firmato idealmente, o semplicemente settiamo clientId e lo slug.
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   
   const sessionData = {
     clientId: client.id,
@@ -59,7 +59,7 @@ export async function loginClient(slug: string, passwordAttempt: string) {
 }
 
 export async function getPortalSession() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('jobmachine_portal_session');
   if (!sessionCookie) return null;
   
@@ -72,7 +72,7 @@ export async function getPortalSession() {
 }
 
 export async function logoutClient() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete('jobmachine_portal_session');
 }
 
