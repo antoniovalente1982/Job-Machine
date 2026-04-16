@@ -317,8 +317,8 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                   style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
                 <input type="text" name="salary" required placeholder="Compenso (es. 1500€/mese + TFR)" 
                   style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
-                <input type="text" name="trello_board_link" placeholder="Link Trello (opzionale)" 
-                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)' }} />
+                <textarea name="public_description" rows={4} placeholder="Testo intero dell'annuncio (opzionale, ma consigliato)..." 
+                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, padding: '0.8rem', color: 'var(--text-primary)', resize: 'vertical', minHeight: 100 }} />
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <button type="button" onClick={() => setModal(null)} style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: 8, color: 'var(--text-primary)', cursor: 'pointer' }}>Annulla</button>
                   <button type="submit" disabled={loading} style={{ flex: 1, padding: '0.8rem', background: 'var(--accent-primary)', border: 'none', borderRadius: 8, color: 'white', fontWeight: 600, cursor: 'pointer' }}>{loading ? '...' : 'Crea'}</button>
