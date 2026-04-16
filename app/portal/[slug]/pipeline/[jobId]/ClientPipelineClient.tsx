@@ -68,30 +68,47 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
     }
   }
 
-  // Costruiamo lo stesso layout del kanban ma senza interattività D&D
+  // Costruiamo lo stesso layout del kanban
   return (
-    <div style={{ display: 'flex', height: '100%', overflowX: 'auto', background: 'var(--bg-primary)' }}>
+    <div style={{ display: 'flex', height: '100%', overflowX: 'auto', background: 'transparent', padding: '1.5rem 2rem' }}>
       {currentStages.map((stage: any, index: number) => {
-        const cands = candidates.filter(c => c.status === stage.id);
+        const sid = stage.id || stage.key;
+        const cands = candidates.filter(c => c.pipeline_stage === sid || (sid === 'received' && !c.pipeline_stage));
         const stageColor = stage.color || '#6366f1';
         
         return (
-          <div key={stage.id} style={{ width: 340, minWidth: 340, flexShrink: 0, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column' }}>
+          <div key={sid} style={{ 
+            minWidth: 270, maxWidth: 270, flex: '0 0 270px', 
+            background: '#0d1117', 
+            borderRadius: 14, 
+            border: '2px solid rgba(255,255,255,0.06)', 
+            display: 'flex', flexDirection: 'column',
+            marginRight: '1rem',
+            position: 'relative'
+          }}>
             
+            {/* Accent top bar */}
+            <div style={{ height: 4, background: stageColor, borderRadius: '12px 12px 0 0', flexShrink: 0 }} />
+
             {/* Header Colonna */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'var(--bg-secondary)', padding: '0.85rem 1.2rem', borderRadius: '12px 12px 0 0', border: '1px solid var(--border-light)', borderTop: `4px solid ${stageColor}` }}>
-              <div>
-                <h2 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {stage.name}
-                </h2>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  {cands.length} candidati totali
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '0.75rem 0.75rem 0.5rem 0.875rem', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '0.82rem', fontWeight: 800, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0, lineHeight: 1.3 }}>
+                {stage.name}
+              </h2>
+              <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: '0.1rem 0.5rem', fontSize: '0.7rem', color: '#9eaab5', fontWeight: 600 }}>
+                {cands.length}
               </div>
             </div>
 
+            {/* Box Definizione if exists */}
+            {stage.definition && (
+              <div style={{ margin: '0 0.75rem 0.5rem', background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '0.55rem 0.7rem', color: '#7a8fa6', fontSize: '0.73rem', lineHeight: 1.45 }}>
+                {stage.definition}
+              </div>
+            )}
+
             {/* Area Carte */}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingBottom: '2rem' }}>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0 0.5rem 1rem 0.5rem' }}>
               {cands.map(candidate => {
                 const isSelected = selectedCandidate?.id === candidate.id;
                 let cCount = 0;
@@ -107,42 +124,45 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
                     key={candidate.id}
                     onClick={() => openCandidate(candidate)}
                     style={{
-                      background: isSelected ? 'var(--bg-secondary)' : 'var(--bg-primary)',
-                      padding: '1.25rem',
-                      borderRadius: 12,
-                      border: isSelected ? `2px solid ${stageColor}` : '1px solid var(--border-light)',
+                      background: '#1c2333',
+                      borderRadius: 9,
+                      padding: '0.7rem 0.75rem',
                       cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: isSelected ? `0 0 15px ${hexToRgba(stageColor, 0.25)}` : '0 2px 5px rgba(0,0,0,0.2)',
+                      border: isSelected ? `2px solid ${stageColor}` : '1px solid rgba(255,255,255,0.03)',
+                      transition: 'border-color 0.2s',
+                      boxShadow: isSelected ? `0 0 15px ${hexToRgba(stageColor, 0.25)}` : '0 1px 3px rgba(0,0,0,0.3)',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: hexToRgba(stageColor, 0.1), border: `1px solid ${hexToRgba(stageColor, 0.2)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: stageColor }}>
-                           <User size={16} />
-                         </div>
-                         <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                           {candidate.first_name} {candidate.last_name}
-                         </h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                      <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '0.85rem', lineHeight: 1.3 }}>
+                        {candidate.first_name} {candidate.last_name}
                       </div>
                     </div>
-                    {/* Badge */}
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: 'var(--bg-secondary)', color: 'var(--text-muted)', borderRadius: 6, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <ClipboardList size={11} /> {cCount}/5
-                      </span>
+                    
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
                       {hasCv && (
-                        <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: 'rgba(34,197,94,0.1)', color: '#22c55e', borderRadius: 6, display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}>
-                          <ExternalLink size={11} /> CV
+                        <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', background: 'rgba(34,197,94,0.1)', color: '#4ade80', borderRadius: 4, display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
+                          <FileText size={10} /> CV
                         </span>
+                      )}
+                      {cCount > 0 && (
+                        <span style={{ fontSize: '0.7rem', color: '#9eaab5', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                          <ClipboardList size={10} /> {cCount}/5
+                        </span>
+                      )}
+                      
+                      {candidate.internal_notes && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#6b7a90', marginLeft: 'auto' }}>
+                           📝
+                        </div>
                       )}
                     </div>
                   </div>
                 );
               })}
               {cands.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)', fontSize: '0.88rem', border: '1px dashed var(--border-light)', borderRadius: 12 }}>
-                  Nessun candidato in questa fase.
+                <div style={{ textAlign: 'center', padding: '1rem', color: '#4a5568', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8 }}>
+                  Nessun candidato
                 </div>
               )}
             </div>
