@@ -212,13 +212,18 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
 
   async function handleSaveStages() {
     setSavingStages(true);
-    await updateJobPipelineStages(jobId, editingStages);
-    await updateJobFormSchema(jobId, editingFormSchema);
-    await updateJobChecklistLabels(jobId, editingChecklistLabels);
-    await updateJobPublicDescription(jobId, editingPublicDesc);
+    let r1 = await updateJobPipelineStages(jobId, editingStages);
+    let r2 = await updateJobFormSchema(jobId, editingFormSchema);
+    let r3 = await updateJobChecklistLabels(jobId, editingChecklistLabels);
+    let r4 = await updateJobPublicDescription(jobId, editingPublicDesc);
     await loadData();
     setSavingStages(false);
-    setIsSettingsOpen(false);
+    
+    if (r1?.error || r2?.error || r3?.error || r4?.error) {
+      alert("Si è verificato un errore durante il salvataggio dei dati: " + (r1?.error || r2?.error || r3?.error || r4?.error));
+    } else {
+      setIsSettingsOpen(false);
+    }
   }
 
   // Inline col edit (from 3-dot menu)

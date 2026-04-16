@@ -49,20 +49,27 @@ export default function TemplatesPage() {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    let res;
     if (editingTemplate) {
-      await updateTemplateMessage(editingTemplate.id, title, subject, body);
+      res = await updateTemplateMessage(editingTemplate.id, title, subject, body);
     } else {
-      await createTemplateMessage(title, subject, body);
+      res = await createTemplateMessage(title, subject, body);
     }
     setSubmitting(false);
-    setModalOpen(false);
-    await loadTemplates();
+    
+    if (res?.error) {
+      alert("Errore salvataggio: " + res.error);
+    } else {
+      setModalOpen(false);
+      await loadTemplates();
+    }
   }
 
   async function handleDelete(id: string) {
     if (confirm('Sei sicuro di voler eliminare questo template?')) {
-      await deleteTemplateMessage(id);
-      await loadTemplates();
+      let res = await deleteTemplateMessage(id);
+      if (res?.error) alert("Errore eliminazione: " + res.error);
+      else await loadTemplates();
     }
   }
 
