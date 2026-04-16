@@ -142,7 +142,7 @@ export default async function ClientPortalDashboard({ params }: { params: Promis
             </div>
           ))
         )}
-
+      </main>
 
       <style dangerouslySetInnerHTML={{__html: `
         .portal-job-card:hover {

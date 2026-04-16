@@ -154,7 +154,6 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                 </span>
               )}
             </div>
-            </div>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
               <button 
                 onClick={async () => {
