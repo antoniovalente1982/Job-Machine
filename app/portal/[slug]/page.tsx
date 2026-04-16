@@ -2,6 +2,7 @@ import { getPortalSession, logoutClient } from '@/app/portalActions';
 import { redirect } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { Building2, Briefcase } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -96,7 +97,7 @@ export default async function ClientPortalDashboard({ params }: { params: Promis
             <div key={structureName} style={{ marginBottom: '3rem' }}>
               <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #1e293b' }}>
                 <h3 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.4rem' }}>🏢</span> {structureName}
+                  <Building2 size={28} style={{ color: '#94a3b8' }} /> {structureName}
                 </h3>
               </div>
               
@@ -117,7 +118,7 @@ export default async function ClientPortalDashboard({ params }: { params: Promis
                       
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div style={{ width: 40, height: 40, background: 'rgba(99,102,241,0.1)', color: '#818cf8', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          💼
+                          <Briefcase size={20} />
                         </div>
                         {job.is_active ? (
                           <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', background: 'rgba(16,185,129,0.1)', color: '#10b981', borderRadius: 20, fontWeight: 600 }}>Attivo</span>
