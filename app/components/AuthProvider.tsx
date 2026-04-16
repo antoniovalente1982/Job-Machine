@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { createSupabaseClient } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { updatePasswordAction } from '../authActions';
 
 type User = {
@@ -134,7 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseClient(), []);
 
+  const pathname = usePathname();
+
   useEffect(() => {
+    const isPublicRoute = pathname?.startsWith('/portal/') || pathname?.startsWith('/apply/');
+
     // Verifica sessione in background (non blocca il render)
     const storedSession = localStorage.getItem('sb-session');
     if (storedSession) {
@@ -151,13 +155,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Sessione scaduta
             localStorage.removeItem('sb-session');
             setUser(null);
-            router.push('/login');
+            if (!isPublicRoute) router.push('/login');
           }
         });
       } catch {
         localStorage.removeItem('sb-session');
         setUser(null);
+        if (!isPublicRoute) router.push('/login');
       }
+    } else {
+      // Se non c'è proprio il token in localstorage
+      if (!isPublicRoute) router.push('/login');
     }
 
     // Listener per cambiamenti di auth
