@@ -131,9 +131,9 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
             onDragLeave={() => setDragOverStage(null)}
             style={{ 
               minWidth: 270, maxWidth: 270, flex: '0 0 270px', 
-              background: isDragTarget ? \`linear-gradient(180deg, \${hexToRgba(stageColor, 0.18)} 0%, #0d1117 100%)\` : '#0d1117',
+              background: isDragTarget ? `linear-gradient(180deg, ${hexToRgba(stageColor, 0.18)} 0%, #0d1117 100%)` : '#0d1117',
               borderRadius: 14, 
-              border: isDragTarget ? \`2px solid \${hexToRgba(stageColor, 0.6)}\` : '2px solid rgba(255,255,255,0.06)', 
+              border: isDragTarget ? `2px solid ${hexToRgba(stageColor, 0.6)}` : '2px solid rgba(255,255,255,0.06)', 
               display: 'flex', flexDirection: 'column',
               marginRight: '1rem',
               position: 'relative',
