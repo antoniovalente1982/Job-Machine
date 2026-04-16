@@ -154,20 +154,28 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                 </span>
               )}
             </div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>🔑 Pwd Manager Esterno:</div>
+              <input 
+                 type="text" 
+                 placeholder="Es. FRESCO"
+                 value={structure.structure_password || ''}
+                 onChange={e => {
+                    const newStructures = client.structures.map((s:any) => s.id === structure.id ? {...s, structure_password: e.target.value} : s);
+                    setClient({...client, structures: newStructures});
+                 }}
+                 style={{ width: '160px', padding: '0.4rem 0.8rem', borderRadius: 8, border: '1px solid var(--border-light)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+              />
               <button 
                 onClick={async () => {
-                  const pwd = prompt(`Imposta la password di accesso per il Responsabile della struttura "${structure.name}":\nLascia vuoto per rimuoverla.`);
-                  if (pwd !== null) {
-                    const { updateStructurePassword } = await import('@/app/adminClientActions');
-                    const res = await updateStructurePassword(structure.id, pwd);
-                    if (res && typeof res === 'object' && res.error) alert('Errore (hai eseguito la migrazione DB?):\n' + res.error);
-                    else alert('Password Responsabile salvata con successo!');
-                  }
+                  const { updateStructurePassword } = await import('@/app/adminClientActions');
+                  const res = await updateStructurePassword(structure.id, structure.structure_password);
+                  if (res && typeof res === 'object' && res.error) alert('Errore:\n' + res.error);
+                  else alert('Password definita e salvata con successo per ' + structure.name);
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', padding: '0.4rem 0.8rem', borderRadius: 8, fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text-primary)' }}
               >
-                🔑 Accesso Manager Esterno
+                <Save size={14} /> Salva
               </button>
             </div>
           </div>
