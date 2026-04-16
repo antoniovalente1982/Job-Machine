@@ -127,15 +127,16 @@ export default function AdminDashboard({ clients }: { clients: any[] }) {
                             className={pageStyles.trelloButton} 
                             style={{ 
                               flex: 1, padding: '0.75rem 0.5rem', fontSize: '0.85rem',
-                              background: copyStatus?.id === role.id ? (copyStatus.status === 'success' ? '#dcfce7' : '#fee2e2') : 'inherit',
-                              color: copyStatus?.id === role.id ? (copyStatus.status === 'success' ? '#15803d' : '#b91c1c') : 'inherit',
-                              border: copyStatus?.id === role.id ? (copyStatus.status === 'success' ? '1px solid #22c55e' : '1px solid #ef4444') : '1px solid var(--border-light)',
-                              transition: 'all 0.2s'
+                              background: copyStatus?.id === role.id ? (copyStatus?.status === 'success' ? '#dcfce7' : '#fee2e2') : (role.public_description ? 'inherit' : 'rgba(156, 163, 175, 0.05)'),
+                              color: copyStatus?.id === role.id ? (copyStatus?.status === 'success' ? '#15803d' : '#b91c1c') : (role.public_description ? 'inherit' : 'var(--text-muted)'),
+                              border: copyStatus?.id === role.id ? (copyStatus?.status === 'success' ? '1px solid #22c55e' : '1px solid #ef4444') : (role.public_description ? '1px solid var(--border-light)' : '1px dashed var(--border-light)'),
+                              transition: 'all 0.2s',
+                              opacity: role.public_description ? 1 : 0.6
                             }}
-                            title="Copia Testo Annuncio"
+                            title={role.public_description ? "Copia Testo Annuncio" : "Testo Annuncio mancante"}
                           >
                             {copyStatus?.id === role.id ? (
-                              copyStatus.status === 'success' ? <><Check size={14} /><span>Copiato</span></> : <><AlertCircle size={14} /><span>Vuoto</span></>
+                              copyStatus?.status === 'success' ? <><Check size={14} /><span>Copiato</span></> : <><AlertCircle size={14} /><span>Vuoto</span></>
                             ) : (
                               <><FileText size={14} /><span>Testo</span></>
                             )}

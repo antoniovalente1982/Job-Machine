@@ -266,21 +266,22 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
                       style={{ 
                         flex: 1, padding: '0.5rem', 
                         background: copyStatus?.id === job.id 
-                          ? (copyStatus.status === 'success' ? '#dcfce7' : '#fee2e2') 
-                          : 'var(--bg-secondary)', 
+                          ? (copyStatus?.status === 'success' ? '#dcfce7' : '#fee2e2') 
+                          : (job.public_description ? 'var(--bg-secondary)' : 'rgba(156, 163, 175, 0.1)'), 
                         border: copyStatus?.id === job.id 
-                          ? (copyStatus.status === 'success' ? '1px solid #22c55e' : '1px solid #ef4444') 
-                          : '1px solid var(--border-primary)', 
+                          ? (copyStatus?.status === 'success' ? '1px solid #22c55e' : '1px solid #ef4444') 
+                          : (job.public_description ? '1px solid var(--border-primary)' : '1px dashed var(--border-light)'), 
                         borderRadius: 6, 
                         color: copyStatus?.id === job.id 
-                          ? (copyStatus.status === 'success' ? '#15803d' : '#b91c1c') 
-                          : 'var(--text-primary)', 
-                        cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', transition: 'all 0.2s' 
+                          ? (copyStatus?.status === 'success' ? '#15803d' : '#b91c1c') 
+                          : (job.public_description ? 'var(--text-primary)' : 'var(--text-muted)'), 
+                        cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', transition: 'all 0.2s',
+                        opacity: job.public_description ? 1 : 0.6
                       }}
-                      title="Copia l'Annuncio di testo per i Social"
+                      title={job.public_description ? "Copia l'Annuncio di testo per i Social" : "Testo Annuncio mancante"}
                     >
                       {copyStatus?.id === job.id ? (
-                        copyStatus.status === 'success' ? <><Check size={14} /> Copiato!</> : <><AlertCircle size={14} /> Vuoto</>
+                        copyStatus?.status === 'success' ? <><Check size={14} /> Copiato!</> : <><AlertCircle size={14} /> Vuoto</>
                       ) : (
                         <><FileText size={14} /> Testo</>
                       )}
