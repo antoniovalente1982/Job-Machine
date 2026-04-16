@@ -161,6 +161,10 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
                   </div>
                 );
               })}
+              {cands.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '1rem', color: '#4a5568', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8 }}>
+                  Nessun candidato
+                </div>
               )}
             </div>
           </div>
