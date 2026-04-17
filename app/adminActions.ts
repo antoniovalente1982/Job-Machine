@@ -1,7 +1,9 @@
 'use server';
 
 import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { revalidatePath } from 'next/cache';
+import { sendEmail } from '@/lib/email';
 
 // Creazione Cliente
 export async function createClient(formData: FormData) {
@@ -82,44 +84,110 @@ export async function updateJobStatus(jobId: string, newStatus: string) {
 export async function inviteTeamMember(formData: FormData) {
   const email = formData.get('email') as string;
   const role = formData.get('role') as string;
+  const fullName = formData.get('full_name') as string || email.split('@')[0];
 
-  // Crea l'invito nel database
-  const { error: inviteError } = await supabase.from('team_invites').insert({
-    email,
-    role,
-  });
-  if (inviteError) return { error: inviteError.message };
+  // Usa il client Admin (service_role) per creare l'utente
+  const adminSb = getSupabaseAdmin();
 
-  // Crea l'utente su Supabase Auth con una password temporanea
+  // Genera password temporanea sicura
   const tempPassword = Math.random().toString(36).slice(-10) + 'A1!';
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+
+  // 1. Crea l'utente su Supabase Auth
+  const { data: authData, error: authError } = await adminSb.auth.admin.createUser({
     email,
     password: tempPassword,
-    email_confirm: true,
-    user_metadata: { full_name: formData.get('full_name') as string || email.split('@')[0] }
+    email_confirm: true, // Conferma email automaticamente
+    user_metadata: { full_name: fullName }
   });
   
-  // Se l'utente esiste già in auth, aggiorniamo solo il profilo
-  if (authError && !authError.message.includes('already')) {
-    return { error: authError.message };
+  if (authError) {
+    // Se l'utente esiste già, non è un errore critico
+    if (authError.message.includes('already')) {
+      return { error: 'Questo utente esiste già nel sistema. Puoi cambiare il suo ruolo dalla lista team.' };
+    }
+    console.error('[INVITE] Errore creazione utente:', authError.message);
+    return { error: `Errore creazione utente: ${authError.message}` };
   }
 
-  // Aggiorna il ruolo nel profilo se l'utente esiste già
+  // 2. Crea/aggiorna il profilo con il ruolo
   if (authData?.user) {
-    await supabase.from('profiles').upsert({
+    await adminSb.from('profiles').upsert({
       id: authData.user.id,
       email,
       role,
-      full_name: formData.get('full_name') as string || email.split('@')[0],
+      full_name: fullName,
     });
   }
 
-  // Segna l'invito come accettato
-  await supabase.from('team_invites').update({ accepted: true }).eq('email', email);
+  // 3. Registra l'invito
+  await supabase.from('team_invites').insert({
+    email,
+    role,
+    accepted: true,
+  });
+
+  // 4. Invia email con le credenziali di accesso
+  const loginUrl = process.env.NEXT_PUBLIC_SITE_URL 
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/login`
+    : 'https://jobmachine.biz/login';
+
+  try {
+    await sendEmail({
+      to: email,
+      subject: '🚀 Benvenuto in Job Machine — Le tue credenziali di accesso',
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px;">
+          <div style="text-align: center; margin-bottom: 32px;">
+            <h1 style="font-size: 24px; color: #1a1a2e; margin: 0;">Job Machine</h1>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Piattaforma di Recruiting</p>
+          </div>
+          
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <p style="margin: 0 0 16px; font-size: 16px; color: #1a1a2e;">
+              Ciao <strong>${fullName}</strong>,
+            </p>
+            <p style="margin: 0 0 16px; font-size: 14px; color: #374151; line-height: 1.6;">
+              Sei stato invitato come <strong>${role === 'admin' ? 'Amministratore' : 'Operatore'}</strong> sulla piattaforma Job Machine.
+            </p>
+            <p style="margin: 0 0 8px; font-size: 14px; color: #374151;">
+              Ecco le tue credenziali di accesso:
+            </p>
+          </div>
+
+          <div style="background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            <div style="margin-bottom: 12px;">
+              <span style="color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Email</span>
+              <div style="color: #ffffff; font-size: 15px; font-weight: 600; margin-top: 2px;">${email}</div>
+            </div>
+            <div>
+              <span style="color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Password temporanea</span>
+              <div style="color: #60a5fa; font-size: 18px; font-weight: 700; font-family: monospace; margin-top: 2px; letter-spacing: 1px;">${tempPassword}</div>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="${loginUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
+              Accedi a Job Machine →
+            </a>
+          </div>
+
+          <p style="font-size: 12px; color: #9ca3af; text-align: center; margin: 0;">
+            Ti consigliamo di cambiare la password al primo accesso.
+          </p>
+        </div>
+      `,
+      text: `Ciao ${fullName}, sei stato invitato su Job Machine come ${role === 'admin' ? 'Amministratore' : 'Operatore'}.\n\nEmail: ${email}\nPassword temporanea: ${tempPassword}\n\nAccedi qui: ${loginUrl}\n\nTi consigliamo di cambiare la password al primo accesso.`
+    });
+  } catch (emailErr: any) {
+    // L'utente è stato creato, ma l'email non è partita.
+    // Mostriamo comunque la password temporanea nell'interfaccia.
+    console.error('[INVITE] Errore invio email:', emailErr.message);
+  }
 
   revalidatePath('/');
   return { success: true, tempPassword };
 }
+
 
 export async function updateUserRole(userId: string, newRole: string) {
   const { error } = await supabase.from('profiles').update({ role: newRole }).eq('id', userId);
@@ -164,8 +232,6 @@ export async function updateJobPublicDescription(jobId: string, public_descripti
   revalidatePath('/');
   return { success: true };
 }
-
-import { sendEmail } from '@/lib/email';
 
 export async function moveCandidatePipeline(
   candidateId: string, 
