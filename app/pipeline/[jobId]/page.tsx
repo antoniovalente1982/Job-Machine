@@ -7,7 +7,8 @@ import { createSupabaseClient } from '@/lib/supabase';
 import {
   ArrowLeft, X, CheckSquare, MessageSquare, MoreHorizontal,
   Plus, Pencil, Trash2, ChevronRight, User, Save,
-  FileText, Download, ExternalLink, ClipboardList
+  FileText, Download, ExternalLink, ClipboardList,
+  Mail, Phone, ChevronDown
 } from 'lucide-react';
 import {
   updateCandidateChecklist,
@@ -68,6 +69,7 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
 
   // CV + questionario
   const [cvUrl,            setCvUrl]            = useState<string | null>(null);
+  const [checklistOpen,    setChecklistOpen]    = useState(false);
   const [cvLoading,        setCvLoading]        = useState(false);
 
   // Checklist labels edit
@@ -654,8 +656,31 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#e2e8f0', marginBottom: '0.15rem' }}>
                       {selectedCandidate.first_name} {selectedCandidate.last_name}
                     </h2>
-                    <div style={{ fontSize: '0.82rem', color: '#6b7a90' }}>
-                      {selectedCandidate.email}{selectedCandidate.phone && ` · ${selectedCandidate.phone}`}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                      {selectedCandidate.email && (
+                        <a
+                          href={`mailto:${selectedCandidate.email}`}
+                          onClick={e => e.stopPropagation()}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: '#818cf8', textDecoration: 'none', fontWeight: 500, padding: '0.2rem 0.5rem', borderRadius: 6, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s' }}
+                          onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.2)'; e.currentTarget.style.color='#a5b4fc'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background='rgba(99,102,241,0.1)'; e.currentTarget.style.color='#818cf8'; }}
+                          title="Invia email"
+                        >
+                          <Mail size={13} /> {selectedCandidate.email}
+                        </a>
+                      )}
+                      {selectedCandidate.phone && (
+                        <a
+                          href={`tel:${selectedCandidate.phone}`}
+                          onClick={e => e.stopPropagation()}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: '#4ade80', textDecoration: 'none', fontWeight: 500, padding: '0.2rem 0.5rem', borderRadius: 6, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', transition: 'all 0.15s' }}
+                          onMouseEnter={e => { e.currentTarget.style.background='rgba(34,197,94,0.2)'; e.currentTarget.style.color='#86efac'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background='rgba(34,197,94,0.1)'; e.currentTarget.style.color='#4ade80'; }}
+                          title="Chiama"
+                        >
+                          <Phone size={13} /> {selectedCandidate.phone}
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -685,48 +710,7 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
             {/* Scrollable content */}
             <div style={{ overflowY: 'auto', flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-              {/* Checklist */}
-              <div>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#9eaab5', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <CheckSquare size={16} style={{ color: '#4f46e5' }} /> Checklist Operativa
-                  </span>
-                  <button
-                    onClick={() => handleOpenSettings('checklist')}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4f46e5', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}
-                    title="Modifica etichette checklist"
-                  >
-                    <Pencil size={11} /> Personalizza
-                  </button>
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  {[
-                    { key: 'checklist_msg1_sent',  label: (job?.checklist_labels?.[0] || DEFAULT_CHECKLIST_LABELS[0]) },
-                    { key: 'checklist_msg2_sent',  label: (job?.checklist_labels?.[1] || DEFAULT_CHECKLIST_LABELS[1]) },
-                    { key: 'checklist_quest_done', label: (job?.checklist_labels?.[2] || DEFAULT_CHECKLIST_LABELS[2]) },
-                    { key: 'checklist_remind_cv',  label: (job?.checklist_labels?.[3] || DEFAULT_CHECKLIST_LABELS[3]) },
-                    { key: 'checklist_cv_done',    label: (job?.checklist_labels?.[4] || DEFAULT_CHECKLIST_LABELS[4]) },
-                  ].map(item => {
-                    const done = !!selectedCandidate[item.key];
-                    return (
-                      <label
-                        key={item.key}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.75rem 1rem', background: done ? 'rgba(79,70,229,0.08)' : 'rgba(255,255,255,0.03)', borderRadius: 9, cursor: 'pointer', border: `1px solid ${done ? 'rgba(79,70,229,0.25)' : 'rgba(255,255,255,0.06)'}`, transition: 'all 0.15s' }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={done}
-                          onChange={e => handleChecklistToggle(item.key, e.target.checked)}
-                          style={{ width: 17, height: 17, accentColor: '#4f46e5', flexShrink: 0 }}
-                        />
-                        <span style={{ fontSize: '0.88rem', color: done ? '#7c8fa6' : '#c7d0db', textDecoration: done ? 'line-through' : 'none', transition: 'color 0.15s' }}>
-                          {item.label}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
+
 
               {/* CV Download */}
               <div>
@@ -797,6 +781,60 @@ export default function PipelinePage({ params }: { params: Promise<{ jobId: stri
                     <Save size={14} /> {savingNotes ? 'Salvataggio...' : 'Salva Note'}
                   </button>
                 </div>
+              </div>
+
+              {/* Checklist Operativa — collapsible */}
+              <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, overflow: 'hidden' }}>
+                <button
+                  onClick={() => setChecklistOpen(!checklistOpen)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.02)', border: 'none', cursor: 'pointer', color: '#9eaab5' }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    <CheckSquare size={15} style={{ color: '#4f46e5' }} /> Checklist Operativa
+                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#6b7a90', background: 'rgba(255,255,255,0.06)', padding: '0.1rem 0.45rem', borderRadius: 99 }}>
+                      {[selectedCandidate.checklist_msg1_sent, selectedCandidate.checklist_msg2_sent, selectedCandidate.checklist_quest_done, selectedCandidate.checklist_remind_cv, selectedCandidate.checklist_cv_done].filter(Boolean).length}/5
+                    </span>
+                  </span>
+                  <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: checklistOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                </button>
+                {checklistOpen && (
+                  <div style={{ padding: '0.5rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.3rem' }}>
+                      <button
+                        onClick={() => handleOpenSettings('checklist')}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4f46e5', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}
+                        title="Modifica etichette checklist"
+                      >
+                        <Pencil size={11} /> Personalizza
+                      </button>
+                    </div>
+                    {[
+                      { key: 'checklist_msg1_sent',  label: (job?.checklist_labels?.[0] || DEFAULT_CHECKLIST_LABELS[0]) },
+                      { key: 'checklist_msg2_sent',  label: (job?.checklist_labels?.[1] || DEFAULT_CHECKLIST_LABELS[1]) },
+                      { key: 'checklist_quest_done', label: (job?.checklist_labels?.[2] || DEFAULT_CHECKLIST_LABELS[2]) },
+                      { key: 'checklist_remind_cv',  label: (job?.checklist_labels?.[3] || DEFAULT_CHECKLIST_LABELS[3]) },
+                      { key: 'checklist_cv_done',    label: (job?.checklist_labels?.[4] || DEFAULT_CHECKLIST_LABELS[4]) },
+                    ].map(item => {
+                      const done = !!selectedCandidate[item.key];
+                      return (
+                        <label
+                          key={item.key}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.65rem 0.85rem', background: done ? 'rgba(79,70,229,0.08)' : 'rgba(255,255,255,0.03)', borderRadius: 8, cursor: 'pointer', border: `1px solid ${done ? 'rgba(79,70,229,0.25)' : 'rgba(255,255,255,0.04)'}`, transition: 'all 0.15s' }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={done}
+                            onChange={e => handleChecklistToggle(item.key, e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: '#4f46e5', flexShrink: 0 }}
+                          />
+                          <span style={{ fontSize: '0.84rem', color: done ? '#7c8fa6' : '#c7d0db', textDecoration: done ? 'line-through' : 'none', transition: 'color 0.15s' }}>
+                            {item.label}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Move to stage quick buttons */}

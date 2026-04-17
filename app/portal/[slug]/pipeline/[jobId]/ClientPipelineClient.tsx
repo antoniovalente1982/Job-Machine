@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createSupabaseClient } from '@/lib/supabase';
-import { X, User, FileText, ExternalLink, ClipboardList, MessageSquare, Save } from 'lucide-react';
+import { X, User, FileText, ExternalLink, ClipboardList, MessageSquare, Save, Mail, Phone } from 'lucide-react';
 import { getClientCvSignedUrl, moveCandidatePipelinePortal, updateClientNotesPortal } from '@/app/portalActions';
 
 const DEFAULT_STAGES = [
@@ -258,9 +258,35 @@ export default function ClientPipelineClient({ jobId, initialJob, slug, initialC
             {/* Contact */}
             <div style={{ background: '#1c2333', padding: '1.25rem', borderRadius: 12, border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1.5rem' }}>
               <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', textTransform: 'uppercase', color: '#9eaab5', letterSpacing: '0.5px' }}>Contatti</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ fontSize: '0.95rem', color: '#e2e8f0' }}><span style={{ color: '#6b7a90' }}>Email:</span> <a href={`mailto:${selectedCandidate.email}`} style={{ color: '#818cf8', textDecoration: 'none', fontWeight: 600 }}>{selectedCandidate.email}</a></div>
-                <div style={{ fontSize: '0.95rem', color: '#e2e8f0' }}><span style={{ color: '#6b7a90' }}>Telefono:</span> {selectedCandidate.phone || 'Non specificato'}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#6b7a90', fontSize: '0.85rem' }}>Email:</span>
+                  <a
+                    href={`mailto:${selectedCandidate.email}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.9rem', color: '#818cf8', textDecoration: 'none', fontWeight: 600, padding: '0.2rem 0.55rem', borderRadius: 6, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.2)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background='rgba(99,102,241,0.1)'; }}
+                    title="Invia email"
+                  >
+                    <Mail size={14} /> {selectedCandidate.email}
+                  </a>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#6b7a90', fontSize: '0.85rem' }}>Telefono:</span>
+                  {selectedCandidate.phone ? (
+                    <a
+                      href={`tel:${selectedCandidate.phone}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.9rem', color: '#4ade80', textDecoration: 'none', fontWeight: 600, padding: '0.2rem 0.55rem', borderRadius: 6, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', transition: 'all 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background='rgba(34,197,94,0.2)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background='rgba(34,197,94,0.1)'; }}
+                      title="Chiama"
+                    >
+                      <Phone size={14} /> {selectedCandidate.phone}
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: '0.9rem', color: '#4a5568' }}>Non specificato</span>
+                  )}
+                </div>
               </div>
             </div>
 
